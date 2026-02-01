@@ -12,7 +12,9 @@ def test_customer_create_outputs_valid_json():
         assert r.exit_code == 0
 
         payload = {"name": "ACME", "email": "sales@acme.example", "address": "123 Road"}
-        r = runner.invoke(cli.cli, ["customer", "create", "--model", json.dumps(payload)])
+        r = runner.invoke(
+            cli.cli, ["customer", "create", "--model", json.dumps(payload)]
+        )
         # Command should succeed
         assert r.exit_code == 0, r.output
 

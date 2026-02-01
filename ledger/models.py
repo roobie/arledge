@@ -11,7 +11,6 @@ from . import config
 
 
 class Creditor(BaseModel):
-
     model_version: str = __version__
 
     id: Optional[int] = None
@@ -88,7 +87,9 @@ class InvoiceLine(BaseModel):
         q = Decimal(self.quantity)
         up = Decimal(self.unit_price)
         net = (q * up).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        vat = (net * (Decimal(self.vat_rate) / Decimal("100"))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        vat = (net * (Decimal(self.vat_rate) / Decimal("100"))).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
         lt = (net + vat).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.net = net
         self.vat = vat
@@ -123,7 +124,9 @@ class Invoice(BaseModel):
     @model_validator(mode="after")
     def compute_totals(self):
         # ensure lines are InvoiceLine instances
-        lines = [l if isinstance(l, InvoiceLine) else InvoiceLine(**l) for l in self.lines]
+        lines = [
+            l if isinstance(l, InvoiceLine) else InvoiceLine(**l) for l in self.lines
+        ]
         self.lines = lines
         subtotal = Decimal("0")
         total_vat = Decimal("0")

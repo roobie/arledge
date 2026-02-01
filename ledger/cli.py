@@ -27,8 +27,8 @@ def database():
 @database.command("initialize")
 def initialize():
     """Initialize the database."""
-    db.init_db()
-    click.echo("Initialized database at ledger.db", err=True)
+    db_path = db.init_db()
+    click.echo(f"Initialized database at {db_path}", err=True)
 
 
 @cli.group()
@@ -38,13 +38,29 @@ def customer():
 
 
 @customer.command("create")
-@click.option("--model", "model_json", default="", help='JSON object for Customer')
-@click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Customer')
-@click.option("--json-schema", "json_schema", is_flag=True, default=False, help='Print Pydantic JSON Schema for Customer and exit')
+@click.option("--model", "model_json", default="", help="JSON object for Customer")
+@click.option(
+    "--model-file",
+    "model_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to JSON file containing Customer",
+)
+@click.option(
+    "--json-schema",
+    "json_schema",
+    is_flag=True,
+    default=False,
+    help="Print Pydantic JSON Schema for Customer and exit",
+)
 def customer_create(model_json, model_file, json_schema):
     """Create a customer from a JSON model or file. Prints created customer JSON to stdout."""
     if json_schema:
-        click.echo(json.dumps(models.Customer.model_json_schema(), indent=2, ensure_ascii=False))
+        click.echo(
+            json.dumps(
+                models.Customer.model_json_schema(), indent=2, ensure_ascii=False
+            )
+        )
         return
 
     if model_file:
@@ -84,13 +100,29 @@ def creditor():
 
 
 @creditor.command("create")
-@click.option("--model", "model_json", default="", help='JSON object for Creditor')
-@click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Creditor')
-@click.option("--json-schema", "json_schema", is_flag=True, default=False, help='Print Pydantic JSON Schema for Creditor and exit')
+@click.option("--model", "model_json", default="", help="JSON object for Creditor")
+@click.option(
+    "--model-file",
+    "model_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to JSON file containing Creditor",
+)
+@click.option(
+    "--json-schema",
+    "json_schema",
+    is_flag=True,
+    default=False,
+    help="Print Pydantic JSON Schema for Creditor and exit",
+)
 def creditor_create(model_json, model_file, json_schema):
     """Create a creditor from a JSON model or file. Prints created creditor JSON to stdout."""
     if json_schema:
-        click.echo(json.dumps(models.Creditor.model_json_schema(), indent=2, ensure_ascii=False))
+        click.echo(
+            json.dumps(
+                models.Creditor.model_json_schema(), indent=2, ensure_ascii=False
+            )
+        )
         return
 
     if model_file:
@@ -139,13 +171,31 @@ def account():
 
 
 @account.command("create")
-@click.option("--model", "model_json", default="", help='JSON object for PaymentAccount')
-@click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing PaymentAccount')
-@click.option("--json-schema", "json_schema", is_flag=True, default=False, help='Print Pydantic JSON Schema for PaymentAccount and exit')
+@click.option(
+    "--model", "model_json", default="", help="JSON object for PaymentAccount"
+)
+@click.option(
+    "--model-file",
+    "model_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to JSON file containing PaymentAccount",
+)
+@click.option(
+    "--json-schema",
+    "json_schema",
+    is_flag=True,
+    default=False,
+    help="Print Pydantic JSON Schema for PaymentAccount and exit",
+)
 def account_create(model_json, model_file, json_schema):
     """Create a payment account from a JSON model or file. Prints created account JSON to stdout."""
     if json_schema:
-        click.echo(json.dumps(models.PaymentAccount.model_json_schema(), indent=2, ensure_ascii=False))
+        click.echo(
+            json.dumps(
+                models.PaymentAccount.model_json_schema(), indent=2, ensure_ascii=False
+            )
+        )
         return
 
     if model_file:
@@ -185,13 +235,27 @@ def invoice():
 
 
 @invoice.command("create")
-@click.option("--model", "model_json", default="", help='JSON object for Invoice')
-@click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Invoice')
-@click.option("--json-schema", "json_schema", is_flag=True, default=False, help='Print Pydantic JSON Schema for Invoice and exit')
+@click.option("--model", "model_json", default="", help="JSON object for Invoice")
+@click.option(
+    "--model-file",
+    "model_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to JSON file containing Invoice",
+)
+@click.option(
+    "--json-schema",
+    "json_schema",
+    is_flag=True,
+    default=False,
+    help="Print Pydantic JSON Schema for Invoice and exit",
+)
 def invoice_create(model_json, model_file, json_schema):
     """Create an invoice from a JSON model or file. Prints created invoice JSON to stdout."""
     if json_schema:
-        click.echo(json.dumps(models.Invoice.model_json_schema(), indent=2, ensure_ascii=False))
+        click.echo(
+            json.dumps(models.Invoice.model_json_schema(), indent=2, ensure_ascii=False)
+        )
         return
 
     if model_file:
@@ -250,6 +314,47 @@ def invoice_export(invoice_id, fmt, path):
         click.echo(out)
     else:
         click.echo("Text export not implemented yet", err=True)
+        sys.exit(2)
+
+
+@cli.group()
+def mcp():
+    """MCP server commands (stdio transport using FastMCP)."""
+    pass
+
+
+@mcp.command("start")
+@click.option("--name", default=None, help="Optional name for the MCP server")
+@click.option(
+    "--json-response/--no-json-response",
+    default=config.MCP_JSON_RESPONSE,
+    help="Prefer JSON responses where supported",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Validate configuration and exit without starting the server",
+)
+def mcp_start(name, json_response, dry_run):
+    """Start an MCP stdio server using the official `mcp` library (blocks).
+
+    Example: `uv run python -m ledger mcp start` will block and listen on
+    stdin/stdout. Use `--dry-run` to validate imports and configuration
+    without blocking (useful for tests).
+    """
+    # Lazy import to avoid requiring mcp at module import time for unrelated CLI commands
+    try:
+        from .mcp_server import start_mcp_stdio_server
+    except Exception as e:
+        click.echo(f"Failed to load MCP server launcher: {e}", err=True)
+        sys.exit(2)
+
+    # Call launcher; when not dry-run this will block (mcp.run)
+    try:
+        start_mcp_stdio_server(name=name, json_response=json_response, dry_run=dry_run)
+    except Exception:
+        click.echo("Failed to start MCP server", err=True)
         sys.exit(2)
 
 

@@ -9,7 +9,11 @@ from ledger import config
 pattern = re.compile(r"^-?\d+\.\d{2}$")
 
 
-@given(st.decimals(min_value=-10 ** 8, max_value=10 ** 8, allow_nan=False, allow_infinity=False))
+@given(
+    st.decimals(
+        min_value=-(10**8), max_value=10**8, allow_nan=False, allow_infinity=False
+    )
+)
 @settings(max_examples=100)
 def test_decimal_to_currency_string_hypothesis(d: Decimal):
     """Hypothesis-based property test: any Decimal should format as a two-decimal
@@ -21,7 +25,9 @@ def test_decimal_to_currency_string_hypothesis(d: Decimal):
     assert pattern.match(out), f"formatted string has incorrect shape: {out} (from {d})"
 
     parsed = config.str_to_decimal_currency(out)
-    assert parsed == expected, f"roundtrip mismatch: {d} -> {out} -> {parsed} (expected {expected})"
+    assert parsed == expected, (
+        f"roundtrip mismatch: {d} -> {out} -> {parsed} (expected {expected})"
+    )
 
 
 def test_decimal_to_currency_string_examples():

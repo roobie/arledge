@@ -35,8 +35,25 @@ def test_create_payment_account_and_default():
     creds = db.list_creditors()
     assert creds, "no creditors present"
     cid = creds[0].id
-    pa1 = models.PaymentAccount(creditor_id=cid, type="bank", label="Main account", identifier="SE000123", bank_name="Bank A", currency="SEK", beancount_account="Assets:Bank:Main", is_default=True)
-    pa2 = models.PaymentAccount(creditor_id=cid, type="paypal", label="PayPal", identifier="pp@example.com", currency="SEK", beancount_account="Assets:Paypal", is_default=False)
+    pa1 = models.PaymentAccount(
+        creditor_id=cid,
+        type="bank",
+        label="Main account",
+        identifier="SE000123",
+        bank_name="Bank A",
+        currency="SEK",
+        beancount_account="Assets:Bank:Main",
+        is_default=True,
+    )
+    pa2 = models.PaymentAccount(
+        creditor_id=cid,
+        type="paypal",
+        label="PayPal",
+        identifier="pp@example.com",
+        currency="SEK",
+        beancount_account="Assets:Paypal",
+        is_default=False,
+    )
     created_pa1 = db.create_payment_account(pa1)
     db.create_payment_account(pa2)
     accounts = db.list_payment_accounts(creditor_id=cid)

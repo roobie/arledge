@@ -12,7 +12,7 @@ def run_migrations():
     # For now migrations are handled by db.init_db() which is idempotent.
     # This placeholder allows future explicit ALTER TABLE migrations.
     conn = sqlite3.connect(DB_PATH)
-    conn.execute('PRAGMA foreign_keys = ON')
+    conn.execute("PRAGMA foreign_keys = ON")
     conn.commit()
     conn.close()
 

@@ -11,6 +11,11 @@ Requirements:
 - Python 3.8+
 - uv 0.9+
 
+```bash
+# Use uv to run this program
+❯ uvx --from git+https://github.com/roobie/arledge ledger instructions
+```
+
 ### Quick CLI examples (machine-friendly)
 
 The CLI accepts a single JSON model (inline text) or a JSON file for create/update operations. Machine-actionable outputs (JSON objects, JSON arrays, or exported file paths) are printed to stdout; human-facing informational and error messages are printed to stderr. The CLI prints actionable JSON by calling `json.dumps(config.dump_model(...))` on created/listed models; note that `dump_model()` returns a Python dict (decimals and datetimes are converted to strings) and the CLI serializes that dict to JSON before printing.
@@ -19,26 +24,26 @@ Examples (inline JSON):
 
 ```bash
 # Initialize the DB
-python -m ledger database initialize
+uv run python -m ledger database initialize
 
 # Create a customer from JSON (prints created customer JSON to stdout)
-python -m ledger customer create --model '{"name":"ACME","email":"sales@example.com","address":"123 Road"}'
+uv run python -m ledger customer create --model '{"name":"ACME","email":"sales@example.com","address":"123 Road"}'
 
 # Create a creditor from file (prints created creditor JSON to stdout)
-python -m ledger creditor create --model-file ./creditor.json
+uv run python -m ledger creditor create --model-file ./creditor.json
 
 # Create a payment account for a creditor
-python -m ledger creditor account create --model '{"creditor_id":1,"type":"bank","identifier":"SE455...","currency":"SEK"}'
+uv run python -m ledger creditor account create --model '{"creditor_id":1,"type":"bank","identifier":"SE455...","currency":"SEK"}'
 
 # Create an invoice (lines must be an array of objects)
-python -m ledger invoice create --model '{"customer_id":1,"lines":[{"description":"Service","quantity":1,"unit_price":"1000.00","vat_rate":"25"}]}'
+uv run python -m ledger invoice create --model '{"customer_id":1,"lines":[{"description":"Service","quantity":1,"unit_price":"1000.00","vat_rate":"25"}]}'
 
 # Export an invoice to JSON (prints exported path to stdout)
-python -m ledger invoice export 1 --format json --path invoice-1.json
+uv run python -m ledger invoice export 1 --format json --path invoice-1.json
 
 # List customers or invoices (outputs JSON array to stdout)
-python -m ledger customer list
-python -m ledger invoice list
+uv run python -m ledger customer list
+uv run python -m ledger invoice list
 ```
 
 Notes:
@@ -52,11 +57,44 @@ You can print the Pydantic JSON Schema for models either via the top-level `sche
 
 ```bash
 # Top-level schema command
-python -m ledger schema customer
+uv run python -m ledger schema customer
 
 # Per-command schema flag
-python -m ledger customer create --json-schema
+uv run python -m ledger customer create --json-schema
 ```
 
 The schema is generated from the Pydantic models defined in `ledger/models.py`.
+
+
+````
+
+## MCP stdio server
+
+This project can run an MCP server over stdin/stdout using the official `mcp` package's `FastMCP` implementation. The CLI exposes a small wrapper command:
+
+```
+# Dry-run (validate imports and configuration, then exit)
+uv run python -m ledger mcp start --dry-run
+
+# Start the stdio MCP server (blocks, listens on stdin/stdout)
+uv run python -m ledger mcp start
+```
+
+Example `FastMCP` usage (the server launcher registers a minimal `ping` tool):
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("Demo Server")
+
+@mcp.tool()
+def add(a: int, b: int) -> int:
+	return a + b
+
+if __name__ == "__main__":
+	print("✅ MCP server has started")
+	mcp.run()
+```
+
+Note: this CLI command lazily imports the `mcp` runtime so other CLI commands and tests are not affected when `mcp` is not used. Use `--dry-run` in unit tests to avoid blocking the test process.
 

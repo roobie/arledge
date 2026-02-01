@@ -22,7 +22,9 @@ def prefixed(name: str) -> str:
     prefix = getattr(config, "arledge_db_prefix", "arledge")
     # simple validation: allow letters, numbers and underscore
     if not prefix.replace("_", "").isalnum():
-        raise ValueError("Invalid arledge_db_prefix; only alphanumeric and underscore allowed")
+        raise ValueError(
+            "Invalid arledge_db_prefix; only alphanumeric and underscore allowed"
+        )
     return f"{prefix}_{name}"
 
 
@@ -30,6 +32,7 @@ def init_db() -> None:
     # If a DB file already exists, remove it to recreate a fresh DB (per user request)
     try:
         from . import config
+
         if os.path.exists(DB_PATH):
             if config.IS_DEVELOPMENT:
                 os.remove(DB_PATH)
@@ -40,7 +43,7 @@ def init_db() -> None:
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(f"""
-    CREATE TABLE IF NOT EXISTS {prefixed('customer')} (
+    CREATE TABLE IF NOT EXISTS {prefixed("customer")} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         email TEXT,
@@ -48,7 +51,7 @@ def init_db() -> None:
     )
     """)
     cur.execute(f"""
-    CREATE TABLE IF NOT EXISTS {prefixed('invoice')} (
+    CREATE TABLE IF NOT EXISTS {prefixed("invoice")} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_id INTEGER NOT NULL,
         status TEXT NOT NULL DEFAULT 'draft',
@@ -58,7 +61,7 @@ def init_db() -> None:
     )
     """)
     cur.execute(f"""
-    CREATE TABLE IF NOT EXISTS {prefixed('invoice_line')} (
+    CREATE TABLE IF NOT EXISTS {prefixed("invoice_line")} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         invoice_id INTEGER NOT NULL,
         description TEXT NOT NULL,
@@ -69,7 +72,7 @@ def init_db() -> None:
     """)
     # Creditors: the entity issuing invoices (us / contractor)
     cur.execute(f"""
-    CREATE TABLE IF NOT EXISTS {prefixed('creditor')} (
+    CREATE TABLE IF NOT EXISTS {prefixed("creditor")} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         address TEXT,
@@ -85,7 +88,7 @@ def init_db() -> None:
 
     # Multiple inbound payment accounts for a creditor (bank, paypal, etc.)
     cur.execute(f"""
-    CREATE TABLE IF NOT EXISTS {prefixed('creditor_payment_account')} (
+    CREATE TABLE IF NOT EXISTS {prefixed("creditor_payment_account")} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         creditor_id INTEGER NOT NULL,
         type TEXT NOT NULL,
@@ -102,7 +105,7 @@ def init_db() -> None:
 
     # Metadata key/value storage
     cur.execute(f"""
-    CREATE TABLE IF NOT EXISTS {prefixed('metadata')} (
+    CREATE TABLE IF NOT EXISTS {prefixed("metadata")} (
         key TEXT PRIMARY KEY,
         value TEXT
     )
@@ -120,6 +123,8 @@ def init_db() -> None:
     ensure_column(prefixed("invoice"), "currency", "TEXT DEFAULT 'SEK'")
     conn.commit()
     conn.close()
+
+    return DB_PATH
 
 
 def create_customer(customer: models.Customer) -> models.Customer:
@@ -215,7 +220,9 @@ def create_payment_account(pa: models.PaymentAccount) -> models.PaymentAccount:
     return pa
 
 
-def list_payment_accounts(creditor_id: Optional[int] = None) -> List[models.PaymentAccount]:
+def list_payment_accounts(
+    creditor_id: Optional[int] = None,
+) -> List[models.PaymentAccount]:
     conn = get_conn()
     cur = conn.cursor()
     if creditor_id is None:
@@ -271,7 +278,9 @@ def list_customers() -> List[models.Customer]:
 def get_customer(cid: int) -> Optional[models.Customer]:
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute(f"SELECT id,name,email,address FROM {prefixed('customer')} WHERE id=?", (cid,))
+    cur.execute(
+        f"SELECT id,name,email,address FROM {prefixed('customer')} WHERE id=?", (cid,)
+    )
     row = cur.fetchone()
     conn.close()
     return models.Customer.model_validate(dict(row)) if row else None
@@ -285,7 +294,13 @@ def create_invoice(invoice: models.Invoice) -> models.Invoice:
     if invoice.creditor_id is None and invoice.currency is None:
         cur.execute(
             f"INSERT INTO {prefixed('invoice')} (customer_id,status,created_at,due_at,description) VALUES (?,?,?,?,?)",
-            (invoice.customer_id, invoice.status, created_at, due_at, invoice.description),
+            (
+                invoice.customer_id,
+                invoice.status,
+                created_at,
+                due_at,
+                invoice.description,
+            ),
         )
     else:
         cur.execute(
@@ -329,10 +344,10 @@ def list_invoices() -> List[models.Invoice]:
     result = []
     for r in rows:
         inv = dict(r)
-        inv['created_at'] = inv.get('created_at')
-        inv['due_at'] = inv.get('due_at')
+        inv["created_at"] = inv.get("created_at")
+        inv["due_at"] = inv.get("due_at")
         # lines and totals will be computed by model
-        inv['lines'] = []
+        inv["lines"] = []
         result.append(models.Invoice.model_validate(inv))
     return result
 

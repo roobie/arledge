@@ -8,6 +8,12 @@ arledge_db_prefix = "arledge"
 
 IS_DEVELOPMENT = True
 
+# MCP stdio server defaults
+# When True, the server should produce JSON responses where supported.
+MCP_JSON_RESPONSE = True
+# Logging level hint for MCP server runtime
+MCP_LOG_LEVEL = "info"
+
 
 def dt_to_iso_utc(dt: datetime) -> str:
     if dt is None:
@@ -32,7 +38,7 @@ def decimal_to_str(d: Decimal) -> str:
     if d is None:
         return None
     # Culture-invariant string representation
-    return format(d, 'f')
+    return format(d, "f")
 
 
 def decimal_to_str_currency(d: Decimal) -> str:
@@ -46,7 +52,7 @@ def decimal_to_str_currency(d: Decimal) -> str:
     from decimal import ROUND_HALF_UP
 
     d2 = d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    return format(d2, 'f')
+    return format(d2, "f")
 
 
 def str_to_decimal(s: Any) -> Decimal:
@@ -109,4 +115,3 @@ def dump_model(m):
     except Exception:
         data = dict(m)
     return _serialize_value(data)
-

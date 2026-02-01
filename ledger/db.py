@@ -1,16 +1,16 @@
 import sqlite3
 import os
 import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
-DB_PATH = os.path.join(os.getcwd(), 'ledger.db')
+DB_PATH: str = os.path.join(os.getcwd(), 'ledger.db')
 
-def get_conn():
+def get_conn() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
-def init_db():
+def init_db() -> None:
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("""
@@ -44,14 +44,14 @@ def init_db():
     conn.commit()
     conn.close()
 
-def create_customer(name, email=None, address=None):
+def create_customer(name: str, email: Optional[str] = None, address: Optional[str] = None) -> int:
     conn = get_conn()
     cur = conn.cursor()
     cur.execute('INSERT INTO customers (name,email,address) VALUES (?,?,?)', (name,email,address))
     conn.commit()
     return cur.lastrowid
 
-def list_customers():
+def list_customers() -> List[Dict[str, Any]]:
     conn = get_conn()
     cur = conn.cursor()
     cur.execute('SELECT id,name,email,address FROM customers ORDER BY id')
@@ -59,7 +59,7 @@ def list_customers():
     conn.close()
     return [dict(r) for r in rows]
 
-def get_customer(cid):
+def get_customer(cid: int) -> Optional[Dict[str, Any]]:
     conn = get_conn()
     cur = conn.cursor()
     cur.execute('SELECT id,name,email,address FROM customers WHERE id=?', (cid,))
@@ -67,7 +67,7 @@ def get_customer(cid):
     conn.close()
     return dict(row) if row else None
 
-def create_invoice(customer_id, lines, status='draft', due_days=None, description=None):
+def create_invoice(customer_id: int, lines: List[Dict[str, Any]], status: str = 'draft', due_days: Optional[int] = None, description: Optional[str] = None) -> int:
     created_at = datetime.datetime.utcnow().isoformat()
     due_at = None
     if due_days is not None:
@@ -87,7 +87,7 @@ def create_invoice(customer_id, lines, status='draft', due_days=None, descriptio
     conn.close()
     return invoice_id
 
-def list_invoices():
+def list_invoices() -> List[Dict[str, Any]]:
     conn = get_conn()
     cur = conn.cursor()
     cur.execute('SELECT id, customer_id, status, created_at, due_at, description FROM invoices ORDER BY id DESC')
@@ -95,7 +95,7 @@ def list_invoices():
     conn.close()
     return [dict(r) for r in rows]
 
-def get_invoice(invoice_id):
+def get_invoice(invoice_id: int) -> Optional[Dict[str, Any]]:
     conn = get_conn()
     cur = conn.cursor()
     cur.execute('SELECT id, customer_id, status, created_at, due_at, description FROM invoices WHERE id=?', (invoice_id,))
@@ -132,10 +132,10 @@ def get_invoice(invoice_id):
     conn.close()
     return inv
 
-def format_invoice_number(invoice_id):
+def format_invoice_number(invoice_id: int) -> str:
     return f"INV-{invoice_id:04d}"
 
-def export_invoice_json(invoice_id, path=None):
+def export_invoice_json(invoice_id: int, path: Optional[str] = None) -> Optional[str]:
     import json
     inv = get_invoice(invoice_id)
     if not inv:

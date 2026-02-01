@@ -70,3 +70,7 @@ def dump_model(m):
     except Exception:
         data = dict(m)
     return _serialize_value(data)
+
+
+# Global DB table prefix (use alphanumeric and underscore only)
+arledge_db_prefix = "arledge"

@@ -6,7 +6,13 @@ from . import db, models, config
 
 @click.group()
 def cli():
-    """Ledger CLI"""
+    """Ledger CLI
+
+    Machine-actionable JSON is printed to stdout; human-facing messages
+    and validation/file errors are printed to stderr. Validation and
+    file-read errors exit with a non-zero code (the implementation
+    currently uses ``sys.exit(2)`` for these error conditions).
+    """
     pass
 
 
@@ -290,7 +296,7 @@ Examples (agent-friendly):
     `python -m ledger customer create --model '{"name":"ACME Ltd","email":"pay@acme.test"}'`
 
 Notes:
-- Monetary amounts in invoices are decimals (e.g., 199.99). Invoice line `unit_price` is expressed in currency units; the DB stores cents internally.
+- Monetary amounts in invoices are decimals (e.g., 199.99). Invoice line `unit_price` is expressed in currency units; the DB stores cents internally - i.e. the precision is .01 units.
 - The CLI guarantees that JSON outputs are canonical via `ledger/config.dump_model()`; agents can rely on that for parsing.
 """
     click.echo(text, err=True)

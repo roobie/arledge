@@ -95,7 +95,14 @@ def _serialize_value(v):
 def dump_model(m):
     """Return a JSON-serializable dict for a pydantic model or plain mapping.
 
-    This converts Decimal and datetime values to invariant strings.
+    The returned value is a Python mapping (dict) suitable for passing to
+    ``json.dumps``. Decimal values are converted to culture-invariant
+    strings (e.g. ``Decimal('1000') -> '1000'`` or currency values as
+    two-decimal strings where used), and datetime values are converted to
+    UTC ISO strings ending with ``Z``. Nested lists and dicts are
+    serialized recursively. Note: this function returns a Python dict,
+    not a JSON string; callers should call ``json.dumps(...)`` when they
+    need a textual JSON representation.
     """
     try:
         data = m.model_dump()  # pydantic model

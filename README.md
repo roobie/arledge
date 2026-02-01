@@ -13,7 +13,7 @@ Requirements:
 
 ### Quick CLI examples (machine-friendly)
 
-The CLI now accepts a single JSON model or a JSON file for create/update operations. All commands print machine-actionable output (JSON or file paths) to stdout; informational and error messages are printed to stderr.
+The CLI accepts a single JSON model (inline text) or a JSON file for create/update operations. Machine-actionable outputs (JSON objects, JSON arrays, or exported file paths) are printed to stdout; human-facing informational and error messages are printed to stderr. The CLI prints actionable JSON by calling `json.dumps(config.dump_model(...))` on created/listed models; note that `dump_model()` returns a Python dict (decimals and datetimes are converted to strings) and the CLI serializes that dict to JSON before printing.
 
 Examples (inline JSON):
 
@@ -42,9 +42,9 @@ python -m ledger invoice list
 ```
 
 Notes:
-- Use `--model` to provide inline JSON and `--model-file` to provide a path to a JSON file.
-- JSON is validated using Pydantic (v2) with `Model.model_validate_json()`; validation errors are printed to stderr and exit non-zero.
-- Use `ledger/config.dump_model()` helpers to obtain canonical JSON (decimal and datetimes normalized).
+- Use `--model` to provide inline JSON text and `--model-file` to provide a path to a UTF-8 encoded JSON file (the CLI reads files with `encoding='utf-8'`).
+- JSON is validated using Pydantic (v2) with `Model.model_validate_json()`; validation errors and file-read errors are printed to stderr and the CLI exits non-zero (the code uses `sys.exit(2)` for these error conditions). Agents and scripts should check the process exit code before parsing stdout.
+- Use `ledger/config.dump_model()` to obtain a JSON-serializable Python dict for models; `dump_model` converts `Decimal` values to culture-invariant strings and `datetime` values to UTC ISO strings ending with `Z`. The CLI then uses `json.dumps(...)` to produce machine JSON from that dict.
 
 ### Schema examples
 

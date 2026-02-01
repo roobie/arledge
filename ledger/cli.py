@@ -8,6 +8,8 @@ from . import db, models, config
 def cli():
     """Ledger CLI
 
+    AGENTS: run the `ledger instructions` command for detailed agent interaction instructions.
+
     Machine-actionable JSON is printed to stdout; human-facing messages
     and validation/file errors are printed to stderr. Validation and
     file-read errors exit with a non-zero code (the implementation

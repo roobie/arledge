@@ -17,7 +17,7 @@ def test_cli_json_endpoints():
     runner = CliRunner()
     with runner.isolated_filesystem():
         # init DB
-        r = runner.invoke(cli.cli, ["init-db"])
+        r = runner.invoke(cli.cli, ["database", "initialize"])
         assert r.exit_code == 0
 
         # Create customer

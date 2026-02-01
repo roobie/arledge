@@ -10,8 +10,14 @@ def cli():
     pass
 
 
-@cli.command()
-def init_db():
+@cli.group()
+def database():
+    """Database commands"""
+    pass
+
+
+@database.command("initialize")
+def initialize():
     """Initialize the database."""
     db.init_db()
     click.echo("Initialized database at ledger.db", err=True)

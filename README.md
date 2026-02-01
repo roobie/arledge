@@ -19,7 +19,7 @@ Examples (inline JSON):
 
 ```bash
 # Initialize the DB
-python -m ledger init-db
+python -m ledger database initialize
 
 # Create a customer from JSON (prints created customer JSON to stdout)
 python -m ledger customer create --model '{"name":"ACME","email":"sales@example.com","address":"123 Road"}'

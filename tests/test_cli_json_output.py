@@ -8,7 +8,7 @@ def test_customer_create_outputs_valid_json():
     runner = CliRunner()
     # run in isolated filesystem so DB is created in temp dir
     with runner.isolated_filesystem():
-        r = runner.invoke(cli.cli, ["init-db"])
+        r = runner.invoke(cli.cli, ["database", "initialize"])
         assert r.exit_code == 0
 
         payload = {"name": "ACME", "email": "sales@acme.example", "address": "123 Road"}

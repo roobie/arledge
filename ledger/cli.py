@@ -26,8 +26,13 @@ def customer():
 @customer.command("create")
 @click.option("--model", "model_json", default="", help='JSON object for Customer')
 @click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Customer')
-def customer_create(model_json, model_file):
+@click.option("--json-schema", "json_schema", is_flag=True, default=False, help='Print Pydantic JSON Schema for Customer and exit')
+def customer_create(model_json, model_file, json_schema):
     """Create a customer from a JSON model or file. Prints created customer JSON to stdout."""
+    if json_schema:
+        click.echo(json.dumps(models.Customer.model_json_schema(), indent=2, ensure_ascii=False))
+        return
+
     if model_file:
         try:
             with open(model_file, "r", encoding="utf-8") as f:
@@ -67,8 +72,13 @@ def creditor():
 @creditor.command("create")
 @click.option("--model", "model_json", default="", help='JSON object for Creditor')
 @click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Creditor')
-def creditor_create(model_json, model_file):
+@click.option("--json-schema", "json_schema", is_flag=True, default=False, help='Print Pydantic JSON Schema for Creditor and exit')
+def creditor_create(model_json, model_file, json_schema):
     """Create a creditor from a JSON model or file. Prints created creditor JSON to stdout."""
+    if json_schema:
+        click.echo(json.dumps(models.Creditor.model_json_schema(), indent=2, ensure_ascii=False))
+        return
+
     if model_file:
         try:
             with open(model_file, "r", encoding="utf-8") as f:
@@ -117,8 +127,13 @@ def account():
 @account.command("create")
 @click.option("--model", "model_json", default="", help='JSON object for PaymentAccount')
 @click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing PaymentAccount')
-def account_create(model_json, model_file):
+@click.option("--json-schema", "json_schema", is_flag=True, default=False, help='Print Pydantic JSON Schema for PaymentAccount and exit')
+def account_create(model_json, model_file, json_schema):
     """Create a payment account from a JSON model or file. Prints created account JSON to stdout."""
+    if json_schema:
+        click.echo(json.dumps(models.PaymentAccount.model_json_schema(), indent=2, ensure_ascii=False))
+        return
+
     if model_file:
         try:
             with open(model_file, "r", encoding="utf-8") as f:
@@ -158,8 +173,13 @@ def invoice():
 @invoice.command("create")
 @click.option("--model", "model_json", default="", help='JSON object for Invoice')
 @click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Invoice')
-def invoice_create(model_json, model_file):
+@click.option("--json-schema", "json_schema", is_flag=True, default=False, help='Print Pydantic JSON Schema for Invoice and exit')
+def invoice_create(model_json, model_file, json_schema):
     """Create an invoice from a JSON model or file. Prints created invoice JSON to stdout."""
+    if json_schema:
+        click.echo(json.dumps(models.Invoice.model_json_schema(), indent=2, ensure_ascii=False))
+        return
+
     if model_file:
         try:
             with open(model_file, "r", encoding="utf-8") as f:
@@ -248,3 +268,29 @@ Best practices for automation:
 - When creating invoices, emit the JSON export immediately after creation to confirm final state.
 """
     click.echo(text, err=True)
+
+
+@cli.command("schema")
+@click.argument("name", type=str)
+def schema(name):
+    """Print Pydantic JSON Schema for a named model (customer, creditor, account, invoice).
+
+    Example: `python -m ledger schema customer` prints the Customer JSON Schema to stdout.
+    """
+    mapping = {
+        "customer": models.Customer,
+        "creditor": models.Creditor,
+        "account": models.PaymentAccount,
+        "payment-account": models.PaymentAccount,
+        "invoice": models.Invoice,
+        "invoice-line": getattr(models, "InvoiceLine", None),
+    }
+    if name not in mapping or mapping[name] is None:
+        click.echo(
+            "Unknown schema name. Available: customer, creditor, account, payment-account, invoice, invoice-line",
+            err=True,
+        )
+        sys.exit(2)
+    mdl = mapping[name]
+    schema = mdl.model_json_schema()
+    click.echo(json.dumps(schema, indent=2, ensure_ascii=False))

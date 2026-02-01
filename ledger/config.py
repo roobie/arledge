@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 
+# Global DB table prefix (use alphanumeric and underscore only)
+arledge_db_prefix = "arledge"
+
+IS_DEVELOPMENT = True
+
 
 def dt_to_iso_utc(dt: datetime) -> str:
     if dt is None:
@@ -30,12 +35,39 @@ def decimal_to_str(d: Decimal) -> str:
     return format(d, 'f')
 
 
+def decimal_to_str_currency(d: Decimal) -> str:
+    """Return a culture-invariant string for currency values with two decimals.
+
+    Examples: Decimal('100') -> '100.00', Decimal('1.5') -> '1.50'
+    """
+    if d is None:
+        return None
+    # Ensure two decimal places (quantize to cents)
+    from decimal import ROUND_HALF_UP
+
+    d2 = d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return format(d2, 'f')
+
+
 def str_to_decimal(s: Any) -> Decimal:
     if s is None:
         return None
     if isinstance(s, Decimal):
         return s
     return Decimal(str(s))
+
+
+def str_to_decimal_currency(s: Any) -> Decimal:
+    """Parse a culture-invariant currency string into a Decimal quantized to two decimals."""
+    if s is None:
+        return None
+    if isinstance(s, Decimal):
+        d = s
+    else:
+        d = Decimal(str(s))
+    from decimal import ROUND_HALF_UP
+
+    return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 # Exported helpers for models' json encoders
@@ -71,6 +103,3 @@ def dump_model(m):
         data = dict(m)
     return _serialize_value(data)
 
-
-# Global DB table prefix (use alphanumeric and underscore only)
-arledge_db_prefix = "arledge"

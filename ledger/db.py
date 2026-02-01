@@ -27,6 +27,16 @@ def prefixed(name: str) -> str:
 
 
 def init_db() -> None:
+    # If a DB file already exists, remove it to recreate a fresh DB (per user request)
+    try:
+        from . import config
+        if os.path.exists(DB_PATH):
+            if config.IS_DEVELOPMENT:
+                os.remove(DB_PATH)
+    except Exception:
+        # If remove fails, continue and let SQLite handle existing file
+        pass
+
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(f"""
@@ -53,7 +63,7 @@ def init_db() -> None:
         invoice_id INTEGER NOT NULL,
         description TEXT NOT NULL,
         quantity TEXT NOT NULL,
-        unit_price INTEGER NOT NULL,
+        unit_price TEXT NOT NULL,
         vat_rate TEXT NOT NULL
     )
     """)
@@ -292,12 +302,13 @@ def create_invoice(invoice: models.Invoice) -> models.Invoice:
         )
     invoice_id = cur.lastrowid
     for line in invoice.lines:
-        up_cents = int((Decimal(line.unit_price) * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        # Store unit_price as a culture-invariant currency string (e.g. "100.00")
+        up_str = config.decimal_to_str_currency(Decimal(line.unit_price))
         qty = config.decimal_to_str(Decimal(line.quantity))
         vat = config.decimal_to_str(Decimal(line.vat_rate))
         cur.execute(
             f"INSERT INTO {prefixed('invoice_line')} (invoice_id,description,quantity,unit_price,vat_rate) VALUES (?,?,?,?,?)",
-            (invoice_id, line.description, qty, up_cents, vat),
+            (invoice_id, line.description, qty, up_str, vat),
         )
     conn.commit()
     invoice.id = invoice_id
@@ -346,7 +357,8 @@ def get_invoice(invoice_id: int) -> Optional[models.Invoice]:
     inv_lines = []
     for l in lines:
         qty = Decimal(str(l["quantity"]))
-        up = (Decimal(l["unit_price"]) / Decimal("100")).quantize(Decimal("0.01"))
+        # unit_price stored as invariant currency string -> parse to Decimal with two decimals
+        up = config.str_to_decimal_currency(l["unit_price"])
         vat_rate = Decimal(str(l["vat_rate"]))
         inv_lines.append(
             {

@@ -69,6 +69,11 @@ def test_cli_json_endpoints():
         r = runner.invoke(cli.cli, ["invoice", "create", "--model", json.dumps(inv_payload)])
         inv = assert_valid_json(r)
         inv_id = inv.get("id")
+        # Money fields must be culture-invariant strings with two decimals
+        assert isinstance(inv.get("lines"), list)
+        first_line = inv["lines"][0]
+        assert isinstance(first_line.get("unit_price"), str)
+        assert first_line.get("unit_price") == "1000.00"
 
         # Invoice list
         r = runner.invoke(cli.cli, ["invoice", "list"])
@@ -79,6 +84,11 @@ def test_cli_json_endpoints():
         r = runner.invoke(cli.cli, ["invoice", "view", str(inv_id)])
         iview = assert_valid_json(r)
         assert iview.get("id") == inv_id
+        # View should also present monetary values as two-decimal strings
+        assert isinstance(iview.get("lines"), list)
+        vline = iview["lines"][0]
+        assert isinstance(vline.get("unit_price"), str)
+        assert vline.get("unit_price") == "1000.00"
 
         # Top-level schema command
         r = runner.invoke(cli.cli, ["schema", "customer"])

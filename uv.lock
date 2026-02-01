@@ -24,7 +24,7 @@ wheels = [
 ]
 
 [[package]]
-name = "simple-ops"
+name = "arledge"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

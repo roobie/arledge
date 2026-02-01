@@ -100,3 +100,33 @@ def invoice_export(invoice_id, fmt, path):
         click.echo(f"Exported to {out}")
     else:
         click.echo("Text export not implemented yet")
+
+@cli.command()
+def instructions():
+    """Print instructions for agentic systems on interacting with the CLI."""
+    text = f"""Instructions for agentic systems interacting with the ledger CLI
+
+Initialization and basic commands:
+- Initialize DB: python -m ledger init-db
+- Create customer: python -m ledger customer create --name "Name" --email "email" --address "address"
+- Create invoice: python -m ledger invoice create --customer-id <id> --line "desc,qty,unit_price,vat_rate" --line ...
+  * VAT rates supported: 25, 12, 6, 0 (Sweden standard rates)
+- List invoices: python -m ledger invoice list
+- View invoice details: python -m ledger invoice view <id>
+- Export invoice (machine-friendly JSON): python -m ledger invoice export <id> --format json --path <file>
+
+Agent interaction guidelines:
+- Prefer non-destructive reads before writes; confirm destructive actions with a human operator.
+- Verify customer existence via `python -m ledger customer list` before creating invoices.
+- Use JSON export for programmatic parsing; the JSON contains invoice_number (INV-0001...), lines, subtotal, total_vat, total.
+- Monetary units: SEK. unit_price is specified in SEK as decimal (e.g., 199.99).
+- Invoice numbers are sequential and deterministic based on DB id (INV-0001 for id=1).
+- Logging: capture stdout/stderr and ledger.db after operations to record state changes.
+- Exit codes: 0 on success, non-zero on error; parse outputs accordingly.
+
+Best practices for automation:
+- Run commands in an isolated environment to avoid concurrent DB writes.
+- Acquire a lock on ledger.db when performing multiple dependent operations.
+- When creating invoices, emit the JSON export immediately after creation to confirm final state.
+"""
+    click.echo(text)

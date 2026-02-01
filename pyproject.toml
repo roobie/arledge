@@ -15,8 +15,14 @@ dependencies = [
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q"
+addopts = "-ra -q --cov=ledger --cov-report=xml:coverage.xml --cov-report=html:htmlcov --cov-fail-under=75"
 testpaths = [
     "tests",
     "integration",
+]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.13.2",
+    "pytest-cov>=7.0.0",
 ]

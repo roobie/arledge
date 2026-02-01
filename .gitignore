@@ -11,3 +11,9 @@ wheels/
 .hypothesis/
 
 ledger.db
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/

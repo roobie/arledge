@@ -8,4 +8,14 @@ dependencies = [
     "beancount>=3.2.0",
     "beanquery>=0.2.0",
     "click>=8.3.1",
+    "pydantic>=2.12.5",
+    "pytest>=9.0.2",
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+    "integration",
 ]

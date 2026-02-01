@@ -4,7 +4,8 @@ Simple CLI ledger for customers and invoices.
 
 ## Information for AGENTS
 
-Call Serena MCP initial_instructions
+ALWAYS Call Serena MCP initial_instructions!
+At the end of implementing a feature or refactorings: make sure to keep Serena memories in sync by encoding the learnings of the changeset.
 
 Requirements:
 - Python 3.8+

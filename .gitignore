@@ -10,7 +10,7 @@ wheels/
 .venv
 .hypothesis/
 
-ledger.db
+*.db
 
 # Coverage
 .coverage

@@ -31,3 +31,5 @@ def test_schema_invoice_line_and_payment_account():
     r2 = runner.invoke(cli.cli, ['schema', 'payment-account'])
     assert r2.exit_code == 0
     assert 'properties' in r2.output
+
+

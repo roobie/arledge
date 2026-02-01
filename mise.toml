@@ -4,3 +4,9 @@ uv = "0.9"
 
 [tasks.fmt]
 run = "uvx ruff format ."
+
+[tasks.test]
+run = "uv run pytest"
+
+[tasks.testcov]
+run = "uv run pytest --cov=ledger --cov-report=html:htmlcov"

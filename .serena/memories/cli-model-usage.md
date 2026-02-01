@@ -1,33 +1,30 @@
-# CLI Model Usage (arledge)
+# CLI Model Usage (arledge) — UPDATED
 
-Summary of CLI behavior and business rules after refactor to `--model`/`--model-file`.
+This memory captures the canonical CLI behaviour after the recent refactor.
 
-- CLI create/update commands accept either:
-  - `--model` : a JSON string passed inline, or
-  - `--model-file` : a path to a JSON file (explicit file arg).
+Inputs
+- Create/update commands accept either:
+  - `--model` : inline JSON string
+  - `--model-file` : explicit path to a JSON file
+- Commands also accept `--json-schema` to print the Pydantic JSON Schema for that model and exit.
+- There is a top-level command: `ledger schema <name>` that prints the JSON Schema for named models (`customer`, `creditor`, `account`, `invoice`, `invoice-line`).
 
-- Parsing & validation:
-  - Input JSON is parsed and validated using Pydantic v2 model methods:
-    - `Model.model_validate_json()` is used to parse raw JSON into model instances.
-  - Validation errors are printed to stderr and the CLI exits with a non-zero status code.
+Parsing & validation
+- All incoming JSON is parsed and validated using Pydantic v2 methods:
+  - `Model.model_validate_json()` is used to parse raw JSON strings into model instances.
+- On validation errors or I/O errors the CLI prints the error message to stderr and exits with a non-zero status code (exit code `2` for validation/I/O errors).
 
-- Output semantics (Unix philosophy):
-  - Actionable machine-readable outputs (created models, lists, exported file paths) are printed to stdout as JSON or plain path strings.
-  - Informational or human-facing messages (progress, warnings, validation errors) are printed to stderr.
+Output conventions (Unix philosophy)
+- Actionable machine-readable outputs are printed to stdout:
+  - Created/returned models are printed as canonical JSON (via `ledger/config.dump_model()`), lists are JSON arrays, schema output is JSON, and export commands print the exported filepath string to stdout.
+- Human/informational messages (progress, warnings, validation errors) are printed to stderr.
 
-- Pydantic models and canonical serialization:
-  - Models live in `ledger/models.py` (`Customer`, `Creditor`, `PaymentAccount`, `Invoice`, `InvoiceLine`, etc.).
-  - For CLI output, `ledger/config.py::dump_model()` is used to convert models to canonical JSON (decimals and datetimes normalized: ISO-8601 Z and culture-invariant decimals).
+Schema support
+- `Model.model_json_schema()` is used to produce JSON Schema for Pydantic models.
+- `ledger schema <name>` and per-command `--json-schema` both print this schema to stdout in pretty JSON (indent=2).
 
-- DB API expectations:
-  - The DB layer (`ledger/db.py`) accepts and returns Pydantic model instances for create/get/list operations.
-  - CLI constructs validated model instances and passes them directly to DB create/update functions.
-
-- File input:
-  - `--model-file` is explicit; the CLI reads the file and treats its contents as the JSON payload.
-
-- Error handling and exit codes:
-  - Validation or I/O errors -> printed to stderr, exit code `2`.
-  - Successful operations -> actionable JSON on stdout, exit code `0`.
+Tests and docs
+- README updated with examples for `--model`, `--model-file`, `--json-schema`, and `ledger schema` usage.
+- Tests were added to assert that all CLI endpoints expected to output JSON do so and that the output parses as JSON.
 
 Date recorded: 2026-02-01

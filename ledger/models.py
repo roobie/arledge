@@ -5,10 +5,14 @@ from datetime import datetime, timezone
 
 from pydantic import BaseModel, field_validator, model_validator
 
+from . import __version__
+
 from . import config
 
 
 class Creditor(BaseModel):
+
+    model_version: str = __version__
 
     id: Optional[int] = None
     name: str
@@ -31,7 +35,7 @@ class Creditor(BaseModel):
 
 
 class PaymentAccount(BaseModel):
-
+    model_version: str = __version__
     id: Optional[int] = None
     creditor_id: int
     type: str
@@ -54,6 +58,7 @@ class PaymentAccount(BaseModel):
 
 
 class Customer(BaseModel):
+    model_version: str = __version__
     id: Optional[int] = None
     name: str
     email: Optional[str] = None
@@ -61,6 +66,7 @@ class Customer(BaseModel):
 
 
 class InvoiceLine(BaseModel):
+    model_version: str = __version__
     description: str
     quantity: Decimal = Decimal("1")
     unit_price: Decimal
@@ -91,6 +97,7 @@ class InvoiceLine(BaseModel):
 
 
 class Invoice(BaseModel):
+    model_version: str = __version__
 
     id: Optional[int] = None
     customer_id: int

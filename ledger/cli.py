@@ -244,28 +244,48 @@ def instructions():
     """Print instructions for agentic systems on interacting with the CLI."""
     text = """Instructions for agentic systems interacting with the ledger CLI
 
-Initialization and basic commands:
-- Initialize DB: python -m ledger init-db
-- Create customer: python -m ledger customer create --name "Name" --email "email" --address "address"
-- Create invoice: python -m ledger invoice create --customer-id <id> --line "desc,qty,unit_price,vat_rate" --line ...
-  * VAT rates supported: 25, 12, 6, 0 (Sweden standard rates)
-- List invoices: python -m ledger invoice list
-- View invoice details: python -m ledger invoice view <id>
-- Export invoice (machine-friendly JSON): python -m ledger invoice export <id> --format json --path <file>
+Overview and machine I/O conventions:
+- All machine-actionable outputs (created/listed models, schemas, export file paths) are printed to STDOUT as JSON or plain text.
+- Human/informational messages, warnings and validation errors are printed to STDERR.
+- Exit codes: `0` for success, non-zero for errors. Agents should check the exit code and parse STDOUT only on success.
 
-Agent interaction guidelines:
-- Prefer non-destructive reads before writes; confirm destructive actions with a human operator.
-- Verify customer existence via `python -m ledger customer list` before creating invoices.
-- Use JSON export for programmatic parsing; the JSON contains invoice_number (INV-0001...), lines, subtotal, total_vat, total.
-- Monetary units: SEK. unit_price is specified in SEK as decimal (e.g., 199.99).
-- Invoice numbers are sequential and deterministic based on DB id (INV-0001 for id=1).
-- Logging: capture stdout/stderr and ledger.db after operations to record state changes.
-- Exit codes: 0 on success, non-zero on error; parse outputs accordingly.
+How to provide model input (writes):
+- Use `--model` to pass an inline JSON string, e.g.:
+    `python -m ledger customer create --model '{"name":"ACME","email":"x@acme.test"}'`
+- Or use `--model-file` to pass a path to a JSON file, e.g.:
+    `python -m ledger customer create --model-file /tmp/customer.json`
 
-Best practices for automation:
-- Run commands in an isolated environment to avoid concurrent DB writes.
-- Acquire a lock on ledger.db when performing multiple dependent operations.
-- When creating invoices, emit the JSON export immediately after creation to confirm final state.
+How to discover JSON Schemas (important for agents):
+- Per-command schema flag: add `--json-schema` to a create command to print that model's JSON Schema to STDOUT and exit.
+    Example: `python -m ledger customer create --json-schema`
+- Global schema command: `python -m ledger schema <name>` prints the named model's JSON Schema.
+    Example: `python -m ledger schema customer`
+    Supported names: `customer`, `creditor`, `account`, `payment-account`, `invoice`, `invoice-line`.
+
+Common read operations (machine-friendly):
+- List customers: `python -m ledger customer list`  # prints JSON array of customers to STDOUT
+- View creditor: `python -m ledger creditor view <id>`  # prints Creditor JSON to STDOUT
+- List payment accounts: `python -m ledger creditor account list [--creditor-id <id>]`
+- Create invoice (write): use `--model` or `--model-file` with the `invoice create` command; created invoice JSON is printed to STDOUT and includes `invoice_number`.
+- Export invoice JSON file: `python -m ledger invoice export <id> --format json --path <file>`  # prints exported filepath to STDOUT
+
+Agent guidelines and best practices:
+- Always fetch the model JSON Schema first (via `--json-schema` or `ledger schema`) to know required fields and types before constructing `--model` input.
+- Parse STDOUT as JSON on success; treat STDERR as human-facing logs only.
+- Prefer non-destructive reads (list/view) before writes. When performing multi-step operations, run them in an isolated working directory and use the export command to confirm final state.
+- Avoid concurrent writes to the same `ledger.db`; acquire external locks if needed.
+
+Examples (agent-friendly):
+- Get the Customer schema:
+    `python -m ledger customer create --json-schema`
+    or
+    `python -m ledger schema customer`
+- Create a Customer using the schema-observed fields:
+    `python -m ledger customer create --model '{"name":"ACME Ltd","email":"pay@acme.test"}'`
+
+Notes:
+- Monetary amounts in invoices are decimals (e.g., 199.99). Invoice line `unit_price` is expressed in currency units; the DB stores cents internally.
+- The CLI guarantees that JSON outputs are canonical via `ledger/config.dump_model()`; agents can rely on that for parsing.
 """
     click.echo(text, err=True)
 

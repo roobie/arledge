@@ -45,3 +45,17 @@ Notes:
 - JSON is validated using Pydantic (v2) with `Model.model_validate_json()`; validation errors are printed to stderr and exit non-zero.
 - Use `ledger/config.dump_model()` helpers to obtain canonical JSON (decimal and datetimes normalized).
 
+### Schema examples
+
+You can print the Pydantic JSON Schema for models either via the top-level `schema` command or the per-command `--json-schema` flag. Schema output is JSON on stdout.
+
+```bash
+# Top-level schema command
+python -m ledger schema customer
+
+# Per-command schema flag
+python -m ledger customer create --json-schema
+```
+
+The schema is generated from the Pydantic models defined in `ledger/models.py`.
+

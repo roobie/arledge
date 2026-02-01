@@ -1,4 +1,5 @@
 import click
+import json
 from . import db
 
 
@@ -41,6 +42,109 @@ def customer_list():
 
 
 @cli.group()
+def creditor():
+    """Creditor (us) commands"""
+    pass
+
+
+@creditor.command("create")
+@click.option("--name", prompt=True)
+@click.option("--address", default="")
+@click.option("--email", default="")
+@click.option("--phone", default="")
+@click.option("--tax-id", default="")
+@click.option("--payment-instructions", default="")
+@click.option("--default-currency", default="SEK")
+@click.option("--beancount-account", default="")
+def creditor_create(name, address, email, phone, tax_id, payment_instructions, default_currency, beancount_account):
+    cid = db.create_creditor(
+        name,
+        address=address or None,
+        email=email or None,
+        phone=phone or None,
+        tax_id=tax_id or None,
+        payment_instructions=payment_instructions or None,
+        default_currency=default_currency,
+        beancount_account=beancount_account or None,
+    )
+    click.echo(f"Created creditor {cid}")
+
+
+@creditor.command("list")
+def creditor_list():
+    creds = db.list_creditors()
+    if not creds:
+        click.echo("No creditors")
+        return
+    for c in creds:
+        click.echo(f"{c['id']}: {c['name']} ({c.get('default_currency','SEK')})")
+
+
+@creditor.command("view")
+@click.argument("creditor_id", type=int)
+def creditor_view(creditor_id):
+    c = db.get_creditor(creditor_id)
+    if not c:
+        click.echo("Creditor not found")
+        return
+    click.echo(f"Creditor {c['id']}: {c['name']}")
+    click.echo(f"Address: {c.get('address')}")
+    click.echo(f"Email: {c.get('email')}")
+    click.echo(f"Phone: {c.get('phone')}")
+    click.echo(f"Tax ID: {c.get('tax_id')}")
+    click.echo(f"Default currency: {c.get('default_currency')}")
+    click.echo(f"Beancount account: {c.get('beancount_account')}")
+
+
+@creditor.group()
+def account():
+    """Creditor inbound payment accounts"""
+    pass
+
+
+@account.command("create")
+@click.option("--creditor-id", required=True, type=int)
+@click.option("--type", "acct_type", required=True, help="bank|paypal|card|other")
+@click.option("--label", default="")
+@click.option("--identifier", default="")
+@click.option("--bank-name", default="")
+@click.option("--currency", default="SEK")
+@click.option("--beancount-account", default="")
+@click.option("--default/--no-default", default=False)
+@click.option("--metadata", default="", help="JSON string for provider-specific metadata")
+def account_create(creditor_id, acct_type, label, identifier, bank_name, currency, beancount_account, default, metadata):
+    try:
+        meta = json.loads(metadata) if metadata else {}
+    except Exception:
+        click.echo("metadata must be valid JSON")
+        return
+    pa_id = db.create_payment_account(
+        creditor_id,
+        acct_type,
+        label=label or None,
+        identifier=identifier or None,
+        bank_name=bank_name or None,
+        currency=currency or None,
+        beancount_account=beancount_account or None,
+        is_default=bool(default),
+        metadata=meta,
+    )
+    click.echo(f"Created payment account {pa_id} for creditor {creditor_id}")
+
+
+@account.command("list")
+@click.option("--creditor-id", type=int, default=None)
+def account_list(creditor_id):
+    rows = db.list_payment_accounts(creditor_id=creditor_id)
+    if not rows:
+        click.echo("No payment accounts")
+        return
+    for r in rows:
+        default_mark = "(default)" if r.get("is_default") else ""
+        click.echo(f"{r['id']}: creditor {r['creditor_id']} - {r['type']} {r.get('label')} {default_mark}")
+
+
+@cli.group()
 def invoice():
     """Invoice commands"""
     pass
@@ -56,7 +160,8 @@ def invoice():
 )
 @click.option("--due-days", type=int, default=30)
 @click.option("--description", default="")
-def invoice_create(customer_id, lines, due_days, description):
+@click.option("--creditor-id", type=int, default=None, help="Optional creditor id to put on invoice")
+def invoice_create(customer_id, lines, due_days, description, creditor_id):
     if not lines:
         click.echo("At least one --line is required")
         return
@@ -76,7 +181,12 @@ def invoice_create(customer_id, lines, due_days, description):
             }
         )
     invoice_id = db.create_invoice(
-        customer_id, parsed, status="issued", due_days=due_days, description=description
+        customer_id,
+        parsed,
+        status="issued",
+        due_days=due_days,
+        description=description,
+        creditor_id=creditor_id,
     )
     click.echo(
         f"Created invoice {db.format_invoice_number(invoice_id)} (id {invoice_id})"

@@ -10,21 +10,38 @@ Requirements:
 - Python 3.8+
 - uv 0.9+
 
+### Quick CLI examples (machine-friendly)
+
+The CLI now accepts a single JSON model or a JSON file for create/update operations. All commands print machine-actionable output (JSON or file paths) to stdout; informational and error messages are printed to stderr.
+
+Examples (inline JSON):
+
 ```bash
-# Initialize project by
-uv sync
+# Initialize the DB
+python -m ledger init-db
 
-# The the application can be called like this:
+# Create a customer from JSON (prints created customer JSON to stdout)
+python -m ledger customer create --model '{"name":"ACME","email":"sales@example.com","address":"123 Road"}'
 
-# Fetch instructions on how to use
-uv run python -m ledger instructions
+# Create a creditor from file (prints created creditor JSON to stdout)
+python -m ledger creditor create --model-file ./creditor.json
 
-# Initialize the database (sqlite3)
-uv run python -m ledger init-db
+# Create a payment account for a creditor
+python -m ledger creditor account create --model '{"creditor_id":1,"type":"bank","identifier":"SE455...","currency":"SEK"}'
 
-# Create a customer
-uv run python -m ledger customer create --name "ACME" --email "sales@example.com" --address "123 Road"
+# Create an invoice (lines must be an array of objects)
+python -m ledger invoice create --model '{"customer_id":1,"lines":[{"description":"Service","quantity":1,"unit_price":"1000.00","vat_rate":"25"}]}'
 
-# Create an invoice
-uv run python -m ledger invoice create --customer-id 1 --line "Service,1,1000,25" --due-days 30
+# Export an invoice to JSON (prints exported path to stdout)
+python -m ledger invoice export 1 --format json --path invoice-1.json
+
+# List customers or invoices (outputs JSON array to stdout)
+python -m ledger customer list
+python -m ledger invoice list
 ```
+
+Notes:
+- Use `--model` to provide inline JSON and `--model-file` to provide a path to a JSON file.
+- JSON is validated using Pydantic (v2) with `Model.model_validate_json()`; validation errors are printed to stderr and exit non-zero.
+- Use `ledger/config.dump_model()` helpers to obtain canonical JSON (decimal and datetimes normalized).
+

@@ -1,6 +1,7 @@
 import click
 import json
-from . import db
+import sys
+from . import db, models, config
 
 
 @click.group()
@@ -13,7 +14,7 @@ def cli():
 def init_db():
     """Initialize the database."""
     db.init_db()
-    click.echo("Initialized database at ledger.db")
+    click.echo("Initialized database at ledger.db", err=True)
 
 
 @cli.group()
@@ -23,22 +24,38 @@ def customer():
 
 
 @customer.command("create")
-@click.option("--name", prompt=True)
-@click.option("--email", default="")
-@click.option("--address", default="")
-def customer_create(name, email, address):
-    cid = db.create_customer(name, email, address)
-    click.echo(f"Created customer {cid}")
+@click.option("--model", "model_json", default="", help='JSON object for Customer')
+@click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Customer')
+def customer_create(model_json, model_file):
+    """Create a customer from a JSON model or file. Prints created customer JSON to stdout."""
+    if model_file:
+        try:
+            with open(model_file, "r", encoding="utf-8") as f:
+                model_json = f.read()
+        except Exception as e:
+            click.echo(f"Failed to read model file: {e}", err=True)
+            sys.exit(2)
+    if not model_json:
+        click.echo("Provide --model JSON or --model-file", err=True)
+        sys.exit(2)
+    try:
+        c = models.Customer.model_validate_json(model_json)
+    except Exception as e:
+        click.echo(f"Invalid customer JSON: {e}", err=True)
+        sys.exit(2)
+    created = db.create_customer(c)
+    # Actionable output: created customer as JSON on stdout
+    click.echo(json.dumps(config.dump_model(created), ensure_ascii=False))
 
 
 @customer.command("list")
 def customer_list():
     customers = db.list_customers()
     if not customers:
-        click.echo("No customers")
+        click.echo("No customers", err=True)
         return
-    for c in customers:
-        click.echo(f"{c['id']}: {c['name']} <{c['email']}>")
+    out = [config.dump_model(c) for c in customers]
+    click.echo(json.dumps(out, ensure_ascii=False))
 
 
 @cli.group()
@@ -48,36 +65,37 @@ def creditor():
 
 
 @creditor.command("create")
-@click.option("--name", prompt=True)
-@click.option("--address", default="")
-@click.option("--email", default="")
-@click.option("--phone", default="")
-@click.option("--tax-id", default="")
-@click.option("--payment-instructions", default="")
-@click.option("--default-currency", default="SEK")
-@click.option("--beancount-account", default="")
-def creditor_create(name, address, email, phone, tax_id, payment_instructions, default_currency, beancount_account):
-    cid = db.create_creditor(
-        name,
-        address=address or None,
-        email=email or None,
-        phone=phone or None,
-        tax_id=tax_id or None,
-        payment_instructions=payment_instructions or None,
-        default_currency=default_currency,
-        beancount_account=beancount_account or None,
-    )
-    click.echo(f"Created creditor {cid}")
+@click.option("--model", "model_json", default="", help='JSON object for Creditor')
+@click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Creditor')
+def creditor_create(model_json, model_file):
+    """Create a creditor from a JSON model or file. Prints created creditor JSON to stdout."""
+    if model_file:
+        try:
+            with open(model_file, "r", encoding="utf-8") as f:
+                model_json = f.read()
+        except Exception as e:
+            click.echo(f"Failed to read model file: {e}", err=True)
+            sys.exit(2)
+    if not model_json:
+        click.echo("Provide --model JSON or --model-file", err=True)
+        sys.exit(2)
+    try:
+        cred = models.Creditor.model_validate_json(model_json)
+    except Exception as e:
+        click.echo(f"Invalid creditor JSON: {e}", err=True)
+        sys.exit(2)
+    created = db.create_creditor(cred)
+    click.echo(json.dumps(config.dump_model(created), ensure_ascii=False))
 
 
 @creditor.command("list")
 def creditor_list():
     creds = db.list_creditors()
     if not creds:
-        click.echo("No creditors")
+        click.echo("No creditors", err=True)
         return
-    for c in creds:
-        click.echo(f"{c['id']}: {c['name']} ({c.get('default_currency','SEK')})")
+    out = [config.dump_model(c) for c in creds]
+    click.echo(json.dumps(out, ensure_ascii=False))
 
 
 @creditor.command("view")
@@ -85,15 +103,9 @@ def creditor_list():
 def creditor_view(creditor_id):
     c = db.get_creditor(creditor_id)
     if not c:
-        click.echo("Creditor not found")
-        return
-    click.echo(f"Creditor {c['id']}: {c['name']}")
-    click.echo(f"Address: {c.get('address')}")
-    click.echo(f"Email: {c.get('email')}")
-    click.echo(f"Phone: {c.get('phone')}")
-    click.echo(f"Tax ID: {c.get('tax_id')}")
-    click.echo(f"Default currency: {c.get('default_currency')}")
-    click.echo(f"Beancount account: {c.get('beancount_account')}")
+        click.echo("Creditor not found", err=True)
+        sys.exit(2)
+    click.echo(json.dumps(config.dump_model(c), ensure_ascii=False))
 
 
 @creditor.group()
@@ -103,33 +115,27 @@ def account():
 
 
 @account.command("create")
-@click.option("--creditor-id", required=True, type=int)
-@click.option("--type", "acct_type", required=True, help="bank|paypal|card|other")
-@click.option("--label", default="")
-@click.option("--identifier", default="")
-@click.option("--bank-name", default="")
-@click.option("--currency", default="SEK")
-@click.option("--beancount-account", default="")
-@click.option("--default/--no-default", default=False)
-@click.option("--metadata", default="", help="JSON string for provider-specific metadata")
-def account_create(creditor_id, acct_type, label, identifier, bank_name, currency, beancount_account, default, metadata):
+@click.option("--model", "model_json", default="", help='JSON object for PaymentAccount')
+@click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing PaymentAccount')
+def account_create(model_json, model_file):
+    """Create a payment account from a JSON model or file. Prints created account JSON to stdout."""
+    if model_file:
+        try:
+            with open(model_file, "r", encoding="utf-8") as f:
+                model_json = f.read()
+        except Exception as e:
+            click.echo(f"Failed to read model file: {e}", err=True)
+            sys.exit(2)
+    if not model_json:
+        click.echo("Provide --model JSON or --model-file", err=True)
+        sys.exit(2)
     try:
-        meta = json.loads(metadata) if metadata else {}
-    except Exception:
-        click.echo("metadata must be valid JSON")
-        return
-    pa_id = db.create_payment_account(
-        creditor_id,
-        acct_type,
-        label=label or None,
-        identifier=identifier or None,
-        bank_name=bank_name or None,
-        currency=currency or None,
-        beancount_account=beancount_account or None,
-        is_default=bool(default),
-        metadata=meta,
-    )
-    click.echo(f"Created payment account {pa_id} for creditor {creditor_id}")
+        pa = models.PaymentAccount.model_validate_json(model_json)
+    except Exception as e:
+        click.echo(f"Invalid payment account JSON: {e}", err=True)
+        sys.exit(2)
+    created = db.create_payment_account(pa)
+    click.echo(json.dumps(config.dump_model(created), ensure_ascii=False))
 
 
 @account.command("list")
@@ -137,11 +143,10 @@ def account_create(creditor_id, acct_type, label, identifier, bank_name, currenc
 def account_list(creditor_id):
     rows = db.list_payment_accounts(creditor_id=creditor_id)
     if not rows:
-        click.echo("No payment accounts")
+        click.echo("No payment accounts", err=True)
         return
-    for r in rows:
-        default_mark = "(default)" if r.get("is_default") else ""
-        click.echo(f"{r['id']}: creditor {r['creditor_id']} - {r['type']} {r.get('label')} {default_mark}")
+    out = [config.dump_model(r) for r in rows]
+    click.echo(json.dumps(out, ensure_ascii=False))
 
 
 @cli.group()
@@ -151,58 +156,40 @@ def invoice():
 
 
 @invoice.command("create")
-@click.option("--customer-id", required=True, type=int)
-@click.option(
-    "--line",
-    "lines",
-    multiple=True,
-    help="Line in format desc,qty,unit_price,vat_rate. Repeatable.",
-)
-@click.option("--due-days", type=int, default=30)
-@click.option("--description", default="")
-@click.option("--creditor-id", type=int, default=None, help="Optional creditor id to put on invoice")
-def invoice_create(customer_id, lines, due_days, description, creditor_id):
-    if not lines:
-        click.echo("At least one --line is required")
-        return
-    parsed = []
-    for l in lines:
-        parts = [p.strip() for p in l.split(",")]
-        if len(parts) < 4:
-            click.echo(f"Bad line format: {l}")
-            return
-        desc, qty, unit_price, vat = parts[0], parts[1], parts[2], parts[3]
-        parsed.append(
-            {
-                "description": desc,
-                "quantity": qty,
-                "unit_price": unit_price,
-                "vat_rate": vat,
-            }
-        )
-    invoice_id = db.create_invoice(
-        customer_id,
-        parsed,
-        status="issued",
-        due_days=due_days,
-        description=description,
-        creditor_id=creditor_id,
-    )
-    click.echo(
-        f"Created invoice {db.format_invoice_number(invoice_id)} (id {invoice_id})"
-    )
+@click.option("--model", "model_json", default="", help='JSON object for Invoice')
+@click.option("--model-file", "model_file", type=click.Path(exists=True), default=None, help='Path to JSON file containing Invoice')
+def invoice_create(model_json, model_file):
+    """Create an invoice from a JSON model or file. Prints created invoice JSON to stdout."""
+    if model_file:
+        try:
+            with open(model_file, "r", encoding="utf-8") as f:
+                model_json = f.read()
+        except Exception as e:
+            click.echo(f"Failed to read model file: {e}", err=True)
+            sys.exit(2)
+    if not model_json:
+        click.echo("Provide --model JSON or --model-file", err=True)
+        sys.exit(2)
+    try:
+        inv = models.Invoice.model_validate_json(model_json)
+    except Exception as e:
+        click.echo(f"Invalid invoice JSON: {e}", err=True)
+        sys.exit(2)
+    created = db.create_invoice(inv)
+    # Include invoice id and invoice_number in actionable JSON
+    out = config.dump_model(created)
+    out["invoice_number"] = db.format_invoice_number(created.id)
+    click.echo(json.dumps(out, ensure_ascii=False))
 
 
 @invoice.command("list")
 def invoice_list():
     invs = db.list_invoices()
     if not invs:
-        click.echo("No invoices")
+        click.echo("No invoices", err=True)
         return
-    for inv in invs:
-        click.echo(
-            f"{db.format_invoice_number(inv['id'])} - customer {inv['customer_id']} - {inv['status']} - {inv['created_at']}"
-        )
+    out = [config.dump_model(inv) for inv in invs]
+    click.echo(json.dumps(out, ensure_ascii=False))
 
 
 @invoice.command("view")
@@ -210,21 +197,9 @@ def invoice_list():
 def invoice_view(invoice_id):
     inv = db.get_invoice(invoice_id)
     if not inv:
-        click.echo("Invoice not found")
-        return
-    click.echo(f"Invoice: {db.format_invoice_number(inv['id'])}")
-    click.echo(f"Customer ID: {inv['customer_id']}")
-    click.echo(f"Status: {inv['status']}")
-    click.echo(f"Created: {inv['created_at']}")
-    click.echo(f"Due: {inv['due_at']}")
-    click.echo("Lines:")
-    for l in inv["lines"]:
-        click.echo(
-            f" - {l['description']}: {l['quantity']} x {l['unit_price']:.2f} VAT {l['vat_rate']}% -> line total {l['line_total']:.2f}"
-        )
-    click.echo(f"Subtotal: {inv['subtotal']:.2f}")
-    click.echo(f"Total VAT: {inv['total_vat']:.2f}")
-    click.echo(f"Total: {inv['total']:.2f}")
+        click.echo("Invoice not found", err=True)
+        sys.exit(2)
+    click.echo(json.dumps(config.dump_model(inv), ensure_ascii=False))
 
 
 @invoice.command("export")
@@ -235,17 +210,19 @@ def invoice_export(invoice_id, fmt, path):
     if fmt == "json":
         out = db.export_invoice_json(invoice_id, path=path)
         if not out:
-            click.echo("Invoice not found")
-            return
-        click.echo(f"Exported to {out}")
+            click.echo("Invoice not found", err=True)
+            sys.exit(2)
+        # actionable output: exported filepath on stdout
+        click.echo(out)
     else:
-        click.echo("Text export not implemented yet")
+        click.echo("Text export not implemented yet", err=True)
+        sys.exit(2)
 
 
 @cli.command()
 def instructions():
     """Print instructions for agentic systems on interacting with the CLI."""
-    text = f"""Instructions for agentic systems interacting with the ledger CLI
+    text = """Instructions for agentic systems interacting with the ledger CLI
 
 Initialization and basic commands:
 - Initialize DB: python -m ledger init-db
@@ -270,4 +247,4 @@ Best practices for automation:
 - Acquire a lock on ledger.db when performing multiple dependent operations.
 - When creating invoices, emit the JSON export immediately after creation to confirm final state.
 """
-    click.echo(text)
+    click.echo(text, err=True)

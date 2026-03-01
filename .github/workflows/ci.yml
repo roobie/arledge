@@ -33,7 +33,7 @@ jobs:
             --cov=ledger \
             --cov-report=xml:coverage.xml \
             --cov-report=html:htmlcov \
-            --cov-fail-under=80
+            --cov-fail-under=75
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4

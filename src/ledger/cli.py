@@ -440,6 +440,23 @@ def invoice_list():
     click.echo(json.dumps(out, ensure_ascii=False))
 
 
+@invoice.command("allocate")
+def invoice_allocate():
+    """Allocate the next invoice id and print it as JSON (id + invoice_number)."""
+    try:
+        from .beancount_write import allocate_invoice_id
+    except Exception as e:
+        click.echo(f"Failed to allocate invoice id: {e}", err=True)
+        sys.exit(2)
+    try:
+        nid = allocate_invoice_id()
+    except Exception as e:
+        click.echo(f"Failed to allocate invoice id: {e}", err=True)
+        sys.exit(2)
+    out = {"id": nid, "invoice_number": beancount_store.format_invoice_number(nid)}
+    click.echo(json.dumps(out, ensure_ascii=False))
+
+
 @invoice.command("view")
 @click.argument("invoice_id", type=int)
 def invoice_view(invoice_id):

@@ -1,6 +1,6 @@
 # arledge
 
-Simple CLI ledger for customers and invoices.
+Simple CLI ledger for customers and invoices (beancount-file-first).
 
 ## Information for AGENTS
 
@@ -20,8 +20,8 @@ The CLI accepts a single JSON model (inline text) or a JSON file for create/upda
 Examples (inline JSON):
 
 ```bash
-# Initialize the DB
-uv run python -m ledger database initialize
+# Initialize the beancount layout (creates ledger.beancount, includes/, .arledge/)
+uv run python -m ledger init
 
 # Create a customer from JSON (prints created customer JSON to stdout)
 uv run python -m ledger customer create --model '{"name":"ACME","email":"sales@example.com","address":"123 Road"}'
@@ -48,6 +48,22 @@ Notes:
 - JSON is validated using Pydantic (v2) with `Model.model_validate_json()`; validation errors and file-read errors are printed to stderr and the CLI exits non-zero (the code uses `sys.exit(2)` for these error conditions). Agents and scripts should check the process exit code before parsing stdout.
 - Use `ledger/config.dump_model()` to obtain a JSON-serializable Python dict for models; `dump_model` converts `Decimal` values to culture-invariant strings and `datetime` values to UTC ISO strings ending with `Z`. The CLI then uses `json.dumps(...)` to produce machine JSON from that dict.
 
+### Storage & invoice sequence
+
+This project uses a beancount-file-first approach: a top-level `ledger.beancount` file that includes files under `includes/` is the canonical ledger. Entities such as customers, creditors, and payment accounts are stored as `custom` directives in `includes/*.beancount`. Invoice transactions live in `includes/invoices/*.beancount`, and detailed invoice line items are stored in JSON sidecar files under `includes/invoices/data/` referenced by transaction metadata (invoice_data).
+
+Invoice numbering and allocation
+- The file `.arledge/invoice_seq` stores the next-available invoice id as a single integer followed by a newline. Example contents: `2\n` means the next allocated id will be 2.
+- Allocation is atomic: the code writes the incremented next-value to a temporary file in the same directory and uses `os.replace()` to atomically replace the sequence file.
+- Recovery: if the sequence file is missing or corrupt, allocation scans existing invoices (beancount includes) to compute the maximum invoice id and use max+1 as the next id.
+
+Example: allocate and create a new invoice
+
+```bash
+# Create an invoice; CLI prints invoice JSON which includes `invoice_number`
+uv run python -m ledger invoice create --model '{"customer_id":1,"lines":[{"description":"Service","unit_price":"1000.00"}]}'
+```
+
 ### Schema examples
 
 You can print the Pydantic JSON Schema for models either via the top-level `schema` command or the per-command `--json-schema` flag. Schema output is JSON on stdout.
@@ -62,8 +78,6 @@ uv run python -m ledger customer create --json-schema
 
 The schema is generated from the Pydantic models defined in `ledger/models.py`.
 
-
-````
 
 ## MCP stdio server
 
@@ -95,18 +109,7 @@ if __name__ == "__main__":
 
 Note: this CLI command lazily imports the `mcp` runtime so other CLI commands and tests are not affected when `mcp` is not used. Use `--dry-run` in unit tests to avoid blocking the test process.
 
-Configurable DB path
+Migration note
 
-By default the ledger uses a SQLite file named `ledger.db` located in the current working directory. You can override the DB location in two ways:
-
-- Set the environment variable `LEDGER_DB_PATH` to a full path to the DB file.
-- Or set `ledger.config.ledger_db_path` in code (advanced usage).
-
-Example using environment variable:
-
-```bash
-LEDGER_DB_PATH=/tmp/my-ledger.db uv run python -m ledger database initialize
-```
-
-The `database initialize` command prints the path where the DB was initialized.
+If you previously used a legacy SQLite backend, note that the project now uses beancount files as the single source-of-truth. If you need help migrating an existing SQLite DB to beancount includes/sidecars, get in touch or consider writing a conversion tool that exports DB rows into `includes/*.beancount` and invoice sidecars.
 

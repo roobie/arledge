@@ -75,13 +75,45 @@ def get_customer(customer_id: int) -> Optional[models.Customer]:
 # Creditors
 
 def list_creditors() -> List[models.Creditor]:
+    """Return the latest mapping for each creditor id.
+
+    If multiple custom entries for the same creditor_id exist, prefer the
+    entry with the most recent date (or the later one in the ledger) so that
+    updates appended to the include file are reflected.
+    """
     es = _entries_for_custom_type("creditor")
-    res = []
+    # Build mapping creditor_id -> entry (choose newest by date)
+    latest: dict[int, object] = {}
     for e in es:
+        try:
+            meta = getattr(e, "meta", {}) or {}
+            cid = coerce_int(meta.get("creditor_id"))
+            if cid is None:
+                # skip entries without id
+                continue
+            existing = latest.get(cid)
+            if existing is None:
+                latest[cid] = e
+                continue
+            # compare dates if available
+            d_new = getattr(e, "date", None)
+            d_old = getattr(existing, "date", None)
+            # prefer entry with later date; if dates equal or missing prefer newer entry (e)
+            if d_new is None:
+                # keep existing
+                continue
+            if d_old is None or d_new >= d_old:
+                latest[cid] = e
+        except Exception:
+            continue
+    res: List[models.Creditor] = []
+    for e in latest.values():
         try:
             res.append(map_custom_to_creditor(e))
         except Exception:
             continue
+    # Sort by id ascending for determinism
+    res.sort(key=lambda x: x.id or 0)
     return res
 
 

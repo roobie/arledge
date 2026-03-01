@@ -302,6 +302,58 @@ def creditor_view(creditor_id):
     click.echo(json.dumps(config.dump_model(c), ensure_ascii=False))
 
 
+@creditor.command("update")
+@click.argument("creditor_id", type=int)
+@click.option("--model", "model_json", default="", help="JSON object for Creditor")
+@click.option(
+    "--model-file",
+    "model_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to JSON file containing Creditor",
+)
+@click.option(
+    "--json-schema",
+    "json_schema",
+    is_flag=True,
+    default=False,
+    help="Print Pydantic JSON Schema for Creditor and exit",
+)
+def creditor_update(creditor_id, model_json, model_file, json_schema):
+    """Update a creditor by appending an updated custom entry. Prints updated creditor JSON to stdout."""
+    if json_schema:
+        click.echo(
+            json.dumps(models.Creditor.model_json_schema(), indent=2, ensure_ascii=False)
+        )
+        return
+
+    if model_file:
+        try:
+            with open(model_file, "r", encoding="utf-8") as f:
+                model_json = f.read()
+        except Exception as e:
+            click.echo(f"Failed to read model file: {e}", err=True)
+            sys.exit(2)
+    if not model_json:
+        click.echo("Provide --model JSON or --model-file", err=True)
+        sys.exit(2)
+    try:
+        cred = models.Creditor.model_validate_json(model_json)
+    except Exception as e:
+        click.echo(f"Invalid creditor JSON: {e}", err=True)
+        sys.exit(2)
+    # enforce requested id
+    cred.id = creditor_id
+    try:
+        from .beancount_write import update_creditor
+
+        updated = update_creditor(cred)
+    except Exception as e:
+        click.echo(f"Failed to update creditor: {e}", err=True)
+        sys.exit(2)
+    click.echo(json.dumps(config.dump_model(updated), ensure_ascii=False))
+
+
 @creditor.group()
 def account():
     """Creditor inbound payment accounts"""

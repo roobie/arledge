@@ -25,3 +25,19 @@
   customer_id: 4
   email: "x@a.test"
 
+
+2026-03-01 custom "customer" "FileCust"
+  customer_id: 5
+  email: "f@f.test"
+
+
+2026-03-01 custom "customer" "ACME"
+  customer_id: 6
+  email: "sales@acme.example"
+  address: "123 Road"
+
+
+2026-03-01 custom "customer" "ACME"
+  customer_id: 7
+  email: "x@a.test"
+

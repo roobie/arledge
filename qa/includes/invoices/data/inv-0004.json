@@ -1,0 +1,26 @@
+{
+  "model_version": "0.1.0",
+  "id": 4,
+  "customer_id": 6,
+  "status": "draft",
+  "created_at": "2026-03-01T18:02:28.114363Z",
+  "due_at": null,
+  "description": null,
+  "creditor_id": 15,
+  "currency": "SEK",
+  "lines": [
+    {
+      "model_version": "0.1.0",
+      "description": "Service",
+      "quantity": "1",
+      "unit_price": "1000.00",
+      "vat_rate": "25",
+      "net": "1000.00",
+      "vat": "250.00",
+      "line_total": "1250.00"
+    }
+  ],
+  "subtotal": "1000.00",
+  "total_vat": "250.00",
+  "total": "1250.00"
+}

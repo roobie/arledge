@@ -27,3 +27,24 @@
   type: "b"
   identifier: "i2"
 
+
+2026-03-01 custom "payment_account" "IBAN123"
+  account_id: 1
+  creditor_id: 15
+  type: "bank"
+  identifier: "IBAN123"
+
+
+2026-03-01 custom "payment_account" "i1"
+  account_id: 1
+  creditor_id: 16
+  type: "a"
+  identifier: "i1"
+
+
+2026-03-01 custom "payment_account" "i2"
+  account_id: 1
+  creditor_id: 17
+  type: "b"
+  identifier: "i2"
+

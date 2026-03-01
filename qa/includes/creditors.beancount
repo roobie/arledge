@@ -2,3 +2,25 @@
   creditor_id: 7
   email: "billing@office.example"
   address: "456 Avenue"
+
+2026-03-01 custom "creditor" "FileCred"
+  creditor_id: 8
+
+
+2026-03-01 custom "creditor" "C1"
+  creditor_id: 9
+
+
+2026-03-01 custom "creditor" "MeCo"
+  creditor_id: 10
+  email: "me@co.example"
+
+
+2026-03-01 custom "creditor" "Ac"
+  creditor_id: 11
+
+
+2026-03-01 custom "creditor" "Cred"
+  creditor_id: 12
+  email: "c@c.test"
+

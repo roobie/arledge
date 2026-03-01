@@ -7,10 +7,8 @@
 Implemented a configurable DB path retrieval function and updated documentation to reflect the new behavior.
 
 ## Changes made
-- ledger/db.py: added `get_db_path()` which prefers the `LEDGER_DB_PATH` environment variable, then `ledger.config.ledger_db_path`, and finally falls back to `<cwd>/ledger.db`.
-- ledger/config.py: added `ledger_db_path: str | None = None` configuration variable.
-- README.md: added a "Configurable DB path" section documenting usage via `LEDGER_DB_PATH`.
-- docs/IMPROVEMENTS_CHECKLIST.md: marked DB path task as "In progress" and noted next steps.
+- Historical note: earlier iterations added `get_db_path()` and `LEDGER_DB_PATH` support for a SQLite backend. That backend has since been removed in favor of a beancount-file-first approach. Current storage uses `ledger/beancount_store.py` and `ledger/beancount_write.py`.
+- README.md and other docs were updated previously to describe DB path options; those references have been replaced or removed as part of the SQLite removal.
 
 ## Commands run
 - Edited ledger/db.py, ledger/config.py, README.md, docs/IMPROVEMENTS_CHECKLIST.md

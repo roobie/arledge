@@ -1,11 +1,26 @@
 {
-  "invoice_id": 1,
+  "model_version": "0.1.0",
+  "id": 1,
+  "customer_id": 1,
+  "status": "draft",
+  "created_at": "2026-03-01T14:29:35.399744Z",
+  "due_at": null,
+  "description": null,
+  "creditor_id": 9,
+  "currency": "USD",
   "lines": [
     {
-      "description": "Consulting services",
-      "quantity": 1,
-      "unit_price": "1000.00",
-      "vat_rate": "25"
+      "model_version": "0.1.0",
+      "description": "l",
+      "quantity": "1",
+      "unit_price": "3.00",
+      "vat_rate": "0",
+      "net": "3.00",
+      "vat": "0.00",
+      "line_total": "3.00"
     }
-  ]
+  ],
+  "subtotal": "3.00",
+  "total_vat": "0.00",
+  "total": "3.00"
 }

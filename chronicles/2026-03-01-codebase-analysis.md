@@ -13,7 +13,7 @@ Started an automated codebase analysis using the project skill `codebase-analysi
 2. Repository inspection commands run locally:
    - ls -la
    - Reviewed README.md, pyproject.toml
-   - Listed package files under `ledger/` and inspected key modules: cli.py, models.py, db.py, config.py, main.py
+   - Listed package files under `ledger/` and inspected key modules: cli.py, models.py, beancount_store.py, beancount_write.py, config.py, main.py
    - Listed tests in `tests/`
 
 ## Representative command outputs
@@ -33,7 +33,7 @@ Key points:
 - Language & runtime: Python (package in `ledger/`), uses Click for CLI and Pydantic v2 for data models.
 - CLI: implemented in ledger/cli.py, exposes commands: database initialize, customer create/list, creditor create/list/view, creditor account create/list, invoice create/list/view/export, mcp start, schema, instructions. Outputs machine-actionable JSON to stdout; human messages to stderr.
 - Models: ledger/models.py defines Pydantic models: Creditor, PaymentAccount, Customer, InvoiceLine, Invoice. Models compute totals and coerce types using validators.
-- Persistence: SQLite via ledger/db.py. DB file path is `os.path.join(os.getcwd(), 'ledger.db')`. Table names are prefixed via ledger.config.arledge_db_prefix.
+- Persistence: Beancount include files and JSON sidecars via ledger/beancount_store.py and ledger/beancount_write.py. The project is file-first and uses beancount custom directives for customers/creditors/payment accounts and JSON sidecars for invoice lines.
 - Agent integration: README documents MCP stdio server and agent conventions. There is a mcp_server.py launcher (inspected but not executed).
 - Tests: comprehensive pytest suite under tests/ that covers majority of functionality; coverage reports are present (coverage.xml, htmlcov/).
 

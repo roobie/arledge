@@ -13,13 +13,13 @@ This checklist contains prioritized findings and suggested improvements from the
   - Suggested owner: Backend dev
   - Estimated effort: 0.5 - 2 hours depending on occurrences
 
-- [ ] Make the SQLite DB path configurable (env var / CLI option)  
+- [x] Remove SQLite backend and adopt beancount-file-first storage
   - Priority: High
-  - Rationale: DB_PATH currently uses CWD (os.getcwd()). This can surprise users and complicate test isolation and deployments.
-  - Status: In progress — `get_db_path()` implemented in ledger/db.py; README updated to document `LEDGER_DB_PATH`. Unit tests were run to verify behavior.
-  - Suggested action (next): Expose CLI/global option if desired, add unit tests that set LEDGER_DB_PATH, and update any deployment docs.
-  - Suggested owner: Backend dev
-  - Estimated effort remaining: 0.5 - 2 hours
+  - Rationale: Project standardised on beancount include files and JSON sidecars for invoices; SQLite is no longer used.
+  - Status: Done — `src/ledger/db.py` and `src/ledger/migrations.py` were removed; `ledger/beancount_store.py` handles reads and `ledger/beancount_write.py` handles writes. Tests were migrated to use the beancount CLI/write flow.
+  - Suggested action (next): Remove legacy docs and references to `LEDGER_DB_PATH` and `db.init_db()` (done), and update any external deployment docs.
+  - Suggested owner: Maintainer
+  - Estimated effort remaining: 0.5 hours (docs sweep)
 
 - [ ] Add tests that explicitly assert independence of default containers (already added)
   - Priority: High

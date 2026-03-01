@@ -50,13 +50,15 @@ def start_mcp_stdio_server(
         return "pong"
 
     # Lazy-import application modules to avoid introducing runtime deps
-    from . import db, models, config
+    from . import models, config
+    from . import beancount_store
+    from . import beancount_write
 
     @mcp.tool()
     def database_initialize() -> str:
-        """Initialize the database (mirrors `ledger database initialize`)."""
-        db.init_db()
-        return "Initialized database at ledger.db"
+        """Initialize the beancount layout (mirrors `ledger init`)."""
+        # This is a no-op: the CLI `init` command handles layout creation. Return hint.
+        return "Use `ledger init` to initialize beancount layout"
 
     @mcp.tool()
     def customer_create(
@@ -95,13 +97,13 @@ def start_mcp_stdio_server(
         if model_obj is None:
             raise ValueError("Provide model (decoded) or model_file")
 
-        created = db.create_customer(model_obj)
+        created = beancount_write.create_customer(model_obj)
         return config.dump_model(created)
 
     @mcp.tool()
     def customer_list() -> list:
         """Return all customers as a list of JSON-serializable dicts."""
-        customers = db.list_customers()
+        customers = beancount_store.list_customers()
         return [config.dump_model(c) for c in customers]
 
     @mcp.tool()
@@ -133,19 +135,19 @@ def start_mcp_stdio_server(
         if model_obj is None:
             raise ValueError("Provide model (decoded) or model_file")
 
-        created = db.create_creditor(model_obj)
+        created = beancount_write.create_creditor(model_obj)
         return config.dump_model(created)
 
     @mcp.tool()
     def creditor_list() -> list:
         """Return all creditors as a list of JSON-serializable dicts."""
-        creds = db.list_creditors()
+        creds = beancount_store.list_creditors()
         return [config.dump_model(c) for c in creds]
 
     @mcp.tool()
     def creditor_view(creditor_id: int):
         """Return a single creditor by id as a JSON-serializable dict."""
-        c = db.get_creditor(creditor_id)
+        c = beancount_store.get_creditor(creditor_id)
         if not c:
             raise ValueError("Creditor not found")
         return config.dump_model(c)
@@ -179,13 +181,13 @@ def start_mcp_stdio_server(
         if model_obj is None:
             raise ValueError("Provide model (decoded) or model_file")
 
-        created = db.create_payment_account(model_obj)
+        created = beancount_write.create_payment_account(model_obj)
         return config.dump_model(created)
 
     @mcp.tool()
     def creditor_account_list(creditor_id: int | None = None) -> list:
         """List payment accounts; optionally filter by creditor_id."""
-        rows = db.list_payment_accounts(creditor_id=creditor_id)
+        rows = beancount_store.list_payment_accounts(creditor_id=creditor_id)
         return [config.dump_model(r) for r in rows]
 
     @mcp.tool()
@@ -217,21 +219,21 @@ def start_mcp_stdio_server(
         if model_obj is None:
             raise ValueError("Provide model (decoded) or model_file")
 
-        created = db.create_invoice(model_obj)
+        created = beancount_write.create_invoice(model_obj)
         out = config.dump_model(created)
-        out["invoice_number"] = db.format_invoice_number(created.id)
+        out["invoice_number"] = beancount_store.format_invoice_number(created.id)
         return out
 
     @mcp.tool()
     def invoice_list() -> list:
         """Return all invoices as a list of JSON-serializable dicts."""
-        invs = db.list_invoices()
+        invs = beancount_store.list_invoices()
         return [config.dump_model(inv) for inv in invs]
 
     @mcp.tool()
     def invoice_view(invoice_id: int):
         """Return a single invoice by id as a JSON-serializable dict."""
-        inv = db.get_invoice(invoice_id)
+        inv = beancount_store.get_invoice(invoice_id)
         if not inv:
             raise ValueError("Invoice not found")
         return config.dump_model(inv)
@@ -241,7 +243,7 @@ def start_mcp_stdio_server(
         """Export an invoice to JSON and return the exported file path."""
         if fmt != "json":
             raise ValueError("Only json export supported")
-        out = db.export_invoice_json(invoice_id, path=path)
+        out = beancount_store.export_invoice_json(invoice_id, path=path)
         if not out:
             raise ValueError("Invoice not found")
         return out

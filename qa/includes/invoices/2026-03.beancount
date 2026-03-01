@@ -5,3 +5,20 @@
   Assets:Receivable:ACME        1250.00 SEK
   Income:Services              -1000.00 SEK
   Liabilities:VAT               -250.00 SEK
+
+2026-03-01 * "Invoice INV-0001"
+  invoice_id: 1
+  customer_id: 1
+  invoice_data: "includes/invoices/data/inv-0001.json"
+  Assets:Receivable:1        3.00 USD
+  Income:Services              -3.00 USD
+
+
+2026-03-01 * "Invoice INV-0002"
+  invoice_id: 2
+  customer_id: 3
+  invoice_data: "includes/invoices/data/inv-0002.json"
+  Assets:Receivable:3        1250.00 SEK
+  Income:Services              -1000.00 SEK
+  Liabilities:VAT               -250.00 SEK
+

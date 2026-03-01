@@ -18,10 +18,7 @@ def assert_valid_json(result):
 def test_cli_json_endpoints():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        # init DB
-        r = runner.invoke(cli.cli, ["database", "initialize"])
-        assert r.exit_code == 0
-
+        # operate in an isolated filesystem (beancount files will be created here)
         # Create customer
         payload_cust = {
             "name": "ACME",

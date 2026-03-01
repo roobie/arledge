@@ -12,7 +12,7 @@ Invoked the repository's built-in codebase-analysis workflow and performed an in
 - ls -la
 - (read) ledger/cli.py
 - (read) ledger/models.py
-- (read) ledger/db.py
+- (read) ledger/beancount_store.py (note: SQLite-backed ledger/db.py was read in earlier analysis but has since been removed in favor of beancount_store)
 - (read) ledger/config.py
 - (cd .claude/skills/scripts && python3 -m skills.codebase_analysis.analyze --step 3 --iteration 1 --confidence exploring)
 

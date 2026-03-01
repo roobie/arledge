@@ -1,12 +1,10 @@
 import os
 from click.testing import CliRunner
 
-from ledger import cli, db
+from ledger import cli
 
 
 def test_model_file_read_errors(tmp_path):
-    db.DB_PATH = os.path.join(tmp_path, "g.db")
-    db.init_db()
     # create a directory to pass as model-file (open will fail)
     d = tmp_path / "adir"
     d.mkdir()

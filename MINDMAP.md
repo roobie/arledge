@@ -14,7 +14,7 @@
 
 [8] **Coverage Learnings (.serena/memories/coverage-learnings.md)** - Coverage setup added pytest-cov/coverage, pyproject addopts, .coveragerc, CI workflow; final measured coverage 91.02% after tests and recommended next steps for reporting [1][12].
 
-[9] **Domain: Creditors & Payment Accounts (.serena/memories/domain-creditor-payment-accounts.md)** - Business rules and schemas for `creditors` and `creditor_payment_accounts`; metadata as free-form JSON, `is_default` semantics, monetary storage as integer cents, exporter preferences for `beancount_account`; see `ledger/db.py`, `ledger/models.py` [1][11].
+[9] **Domain: Creditors & Payment Accounts (.serena/memories/domain-creditor-payment-accounts.md)** - Business rules and schemas for `creditors` and `creditor_payment_accounts`; metadata as free-form JSON, `is_default` semantics, monetary storage as integer cents, exporter preferences for `beancount_account`; see `ledger/beancount_store.py`, `ledger/models.py` [1][11].
 
 [10] **Project General (.serena/memories/project-general.md)** - Onboarding and quickstart: use `uv` wrapper (e.g. `uv run pytest`), pytest configured in `pyproject.toml`, coverage/dev-deps noted; README and pyproject are entry points for run/test info [1].
 
@@ -24,7 +24,7 @@
 
 [13] **Beancount Notes (docs/beancount.md)** - Double-entry bookkeeping reference: account types, transaction/posting rules, trial balance, reporting perspectives; used for `beancount_account` mappings [9].
 
-[14] **Repository Layout & Key Files** - Layout: `ledger/` package (cli.py, db.py, models.py, config.py, mcp_server.py, migrations.py, __main__.py), `tests/`, `.github/workflows/ci.yml`, `pyproject.toml`, README, and `.serena/memories/` [15][18].
+[14] **Repository Layout & Key Files** - Layout: `ledger/` package (cli.py, models.py, config.py, mcp_server.py, beancount_store.py, beancount_write.py, __main__.py), `tests/`, `.github/workflows/ci.yml`, `pyproject.toml`, README, and `.serena/memories/` [15][18].
 
 [15] **Entry Points & CLI Invocation** - Console script `ledger` maps to `ledger.cli:cli` in pyproject; `python -m ledger` uses `ledger.__main__` which calls `cli()`; tests use Click's CliRunner or `uv run python -m ledger` [7][14].
 
@@ -32,13 +32,13 @@
 
 [17] **Pydantic Models (ledger/models.py)** - Models include Customer, Creditor, PaymentAccount, InvoiceLine, Invoice; validators coerce datetimes/decimals; InvoiceLine computes net/vat/line_total with ROUND_HALF_UP quantize(0.01); Invoice computes subtotal/total and sets created_at default UTC now; `model_version` uses package __version__ [11].
 
-[18] **Database Layer (ledger/db.py)** - SQLite `ledger.db` in CWD; table names prefixed via `config.arledge_db_prefix`; `init_db()` creates tables and ensures columns; in development mode init_db may remove DB to recreate; CRUD functions return Pydantic models; invoice exports write JSON and invoice numbering uses `INV-XXXX` [9][17].
+[18] **Storage: Beancount files (ledger/beancount_store.py)** - Ledger is now file-first using Beancount include files and custom directives. `ledger/beancount_store.py` reads beancount loader entries and maps them to Pydantic models. Invoice lines are stored in JSON sidecar files referenced by transaction metadata. CLI create operations write beancount snippets via `ledger/beancount_write.py`. [9][17].
 
 [19] **Config Helpers & Serialization (ledger/config.py)** - Utilities: dt_to_iso_utc / iso_to_dt, decimal_to_str / decimal_to_str_currency, JSON_ENCODERS for Pydantic, and `dump_model()` converting datetimes and Decimals for CLI/MCP outputs [11][18].
 
 [20] **MCP stdio Server (ledger/mcp_server.py)** - FastMCP launcher with lazy imports; `start_mcp_stdio_server` supports `dry_run` for tests, registers tools mirroring CLI ops (customer/creditor/account/invoice), and prints a `ping` tool; CLI `mcp start` lazily imports this launcher [16].
 
-[21] **Migrations Strategy (ledger/migrations.py)** - Currently a placeholder; `db.init_db()` performs idempotent table creation and simple `ensure_column` migrations; `run_migrations()` exists for future ALTER TABLE migrations [18].
+[21] **Migrations Strategy** - The project uses a file-first approach (Beancount). Traditional SQL migrations are not applicable; schema evolution focuses on beancount snippet formats and sidecar layout migrations. Historical SQLite migration notes were removed when storage migrated to beancount files.
 
 [22] **Tests & Coverage (tests/)** - Test suite covers CLI, DB CRUD integration, model property tests, serialization/config tests, and CLI error branches; pytest configured in pyproject with coverage addopts; local measured coverage was 76.13% with reports output to coverage.xml and htmlcov/ [7][8][13].
 

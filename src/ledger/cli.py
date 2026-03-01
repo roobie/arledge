@@ -1,7 +1,7 @@
 import click
 import json
 import sys
-from . import db, models, config, beancount_store
+from . import models, config, beancount_store
 
 
 @click.group()
@@ -24,19 +24,6 @@ def cli():
       uv run ledger
     """
     pass
-
-
-@cli.group()
-def database():
-    """Database commands"""
-    pass
-
-
-@database.command("initialize")
-def initialize():
-    """Initialize the database."""
-    db_path = db.init_db()
-    click.echo(f"Initialized database at {db_path}", err=True)
 
 
 @cli.command("init")
@@ -216,7 +203,14 @@ def customer_create(model_json, model_file, json_schema):
     except Exception as e:
         click.echo(f"Invalid customer JSON: {e}", err=True)
         sys.exit(2)
-    created = db.create_customer(c)
+    # Use beancount write flow
+    try:
+        from .beancount_write import create_customer
+
+        created = create_customer(c)
+    except Exception as e:
+        click.echo(f"Failed to create customer: {e}", err=True)
+        sys.exit(2)
     # Actionable output: created customer as JSON on stdout
     click.echo(json.dumps(config.dump_model(created), ensure_ascii=False))
 
@@ -278,7 +272,13 @@ def creditor_create(model_json, model_file, json_schema):
     except Exception as e:
         click.echo(f"Invalid creditor JSON: {e}", err=True)
         sys.exit(2)
-    created = db.create_creditor(cred)
+    try:
+        from .beancount_write import create_creditor
+
+        created = create_creditor(cred)
+    except Exception as e:
+        click.echo(f"Failed to create creditor: {e}", err=True)
+        sys.exit(2)
     click.echo(json.dumps(config.dump_model(created), ensure_ascii=False))
 
 
@@ -351,7 +351,13 @@ def account_create(model_json, model_file, json_schema):
     except Exception as e:
         click.echo(f"Invalid payment account JSON: {e}", err=True)
         sys.exit(2)
-    created = db.create_payment_account(pa)
+    try:
+        from .beancount_write import create_payment_account
+
+        created = create_payment_account(pa)
+    except Exception as e:
+        click.echo(f"Failed to create payment account: {e}", err=True)
+        sys.exit(2)
     click.echo(json.dumps(config.dump_model(created), ensure_ascii=False))
 
 
@@ -411,10 +417,16 @@ def invoice_create(model_json, model_file, json_schema):
     except Exception as e:
         click.echo(f"Invalid invoice JSON: {e}", err=True)
         sys.exit(2)
-    created = db.create_invoice(inv)
+    try:
+        from .beancount_write import create_invoice
+
+        created = create_invoice(inv)
+    except Exception as e:
+        click.echo(f"Failed to create invoice: {e}", err=True)
+        sys.exit(2)
     # Include invoice id and invoice_number in actionable JSON
     out = config.dump_model(created)
-    out["invoice_number"] = db.format_invoice_number(created.id)
+    out["invoice_number"] = beancount_store.format_invoice_number(created.id)
     click.echo(json.dumps(out, ensure_ascii=False))
 
 

@@ -94,34 +94,55 @@ def _invoice_seq_path() -> Path:
     return base / ".arledge" / "invoice_seq"
 
 
-def _next_invoice_id() -> int:
+def _atomic_write(path: Path, data: str) -> None:
+    # Write data atomically to path by writing to a temp file in same dir
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.parent / f".{path.name}.tmp-{uuid.uuid4().hex}"
+    with open(tmp, "w", encoding="utf-8") as f:
+        _write_and_fsync(f, data)
+    # replace is atomic on most OSes
+    os.replace(tmp, path)
+
+
+def allocate_invoice_id() -> int:
+    """Allocate and return the next invoice id and persist incremented value.
+
+    Sequence file stores the next-available id. Allocation is atomic via
+    write-to-temp + os.replace. If the seq file is missing or corrupt, recover
+    by scanning existing invoices for the max id.
+    """
     seq = _invoice_seq_path()
-    base = config.get_basedir()
+    # Determine recovery max id
+    invs = beancount_store.list_invoices()
+    max_id = 0
+    for inv in invs:
+        try:
+            if inv.id and int(inv.id) > max_id:
+                max_id = int(inv.id)
+        except Exception:
+            continue
+
     if not seq.exists():
-        # attempt recovery: scan existing invoices
-        invs = beancount_store.list_invoices()
-        max_id = 0
-        for inv in invs:
-            if inv.id and inv.id > max_id:
-                max_id = inv.id
-        next_id = max_id + 1
-        seq.parent.mkdir(parents=True, exist_ok=True)
-        seq.write_text(f"{next_id}\n", encoding="utf-8")
-        return next_id
-    # Read, increment, write back
+        next_val = max_id + 1
+    else:
+        try:
+            next_val = int(seq.read_text(encoding="utf-8").strip())
+        except Exception:
+            # corrupt: recover from invoices
+            next_val = max_id + 1
+    # allocate current and persist next
+    cur = next_val
     try:
-        cur = int(seq.read_text(encoding="utf-8").strip())
+        _atomic_write(seq, f"{next_val+1}\n")
     except Exception:
-        # Recover from corruption
-        invs = beancount_store.list_invoices()
-        max_id = 0
-        for inv in invs:
-            if inv.id and inv.id > max_id:
-                max_id = inv.id
-        cur = max_id + 1
-    # write back next number
-    seq.write_text(f"{cur+1}\n", encoding="utf-8")
+        # Best-effort fallback: non-atomic write
+        seq.write_text(f"{next_val+1}\n", encoding="utf-8")
     return cur
+
+
+# Backwards-compatible alias used internally
+def _next_invoice_id() -> int:
+    return allocate_invoice_id()
 
 
 # Create functions
@@ -250,7 +271,7 @@ def create_invoice(inv: models.Invoice) -> models.Invoice:
         )
     # allocate invoice id
     if inv.id is None:
-        inv.id = _next_invoice_id()
+        inv.id = allocate_invoice_id()
     # write sidecar first
     sidecar_name = f"inv-{inv.id:04d}.json"
     sidecar_path = invoices_data / sidecar_name

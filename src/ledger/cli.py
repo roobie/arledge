@@ -577,3 +577,142 @@ def schema(name):
     mdl = mapping[name]
     schema = mdl.model_json_schema()
     click.echo(json.dumps(schema, indent=2, ensure_ascii=False))
+
+
+@cli.command("validate")
+def validate():
+    """Validate the full beancount ledger and detect orphan/missing invoice sidecars.
+
+    Runs beancount.loader.load_file on ledger.beancount, reports parse errors,
+    per-transaction balance violations (per currency), and invoice sidecar
+    issues:
+      - missing sidecar referenced by a transaction -> error
+      - orphan sidecar present in includes/invoices/data not referenced -> warning
+
+    Exits with code 0 on success, 2 on validation error.
+    """
+    from decimal import Decimal
+    from pathlib import Path
+
+    base = config.get_basedir()
+    ledger_file = base / "ledger.beancount"
+    if not ledger_file.exists():
+        click.echo("No ledger.beancount found", err=True)
+        sys.exit(2)
+    try:
+        from beancount.loader import load_file
+
+        entries, errors, options = load_file(str(ledger_file))
+    except Exception as e:
+        click.echo(f"Failed to load ledger: {e}", err=True)
+        sys.exit(2)
+
+    had_error = False
+    # Report parse/load errors. Treat unknown-account references as warnings.
+    if errors:
+        fatal = []
+        warns = []
+        for err in errors:
+            s = None
+            try:
+                s = str(err)
+            except Exception:
+                s = repr(err)
+            low = s.lower() if s else ""
+            if "unknown account" in low or "invalid reference to unknown account" in low:
+                warns.append(s)
+            else:
+                fatal.append(s)
+        if fatal:
+            click.echo("Beancount parse/load errors:", err=True)
+            for err in fatal:
+                click.echo(err, err=True)
+            had_error = True
+        if warns:
+            click.echo("Beancount parse/load warnings:", err=True)
+            for w in warns:
+                click.echo(w, err=True)
+
+    # Balance check: per-transaction, per-currency sums should be zero
+    balance_issues = []
+    for e in entries:
+        if e.__class__.__name__ == "Transaction":
+            sums: dict[str, Decimal] = {}
+            postings = getattr(e, "postings", []) or []
+            for p in postings:
+                u = getattr(p, "units", None)
+                if not u:
+                    continue
+                # attempt to extract numeric value
+                num = None
+                for attr in ("number", "value", "amount"):
+                    num = getattr(u, attr, None)
+                    if num is not None:
+                        break
+                if num is None:
+                    try:
+                        num = Decimal(str(u))
+                    except Exception:
+                        continue
+                try:
+                    dec = Decimal(str(num))
+                except Exception:
+                    try:
+                        dec = Decimal(num)
+                    except Exception:
+                        continue
+                cur = getattr(u, "currency", None) or getattr(u, "currency", None)
+                if not cur:
+                    cur = ""
+                sums.setdefault(cur, Decimal(0))
+                sums[cur] += dec
+            for cur, total in sums.items():
+                if total != Decimal(0):
+                    balance_issues.append(
+                        f"Unbalanced transaction {getattr(e,'date', '')} {getattr(e,'narration', '')}: currency={cur} total={total}"
+                    )
+    if balance_issues:
+        click.echo("Balance issues detected:", err=True)
+        for b in balance_issues:
+            click.echo(b, err=True)
+        had_error = True
+
+    # Sidecar detection
+    invoices_data = base / "includes" / "invoices" / "data"
+    referenced = set()
+    missing = []
+    for e in entries:
+        if e.__class__.__name__ == "Transaction":
+            meta = getattr(e, "meta", {}) or {}
+            inv_data = meta.get("invoice_data")
+            if inv_data and isinstance(inv_data, str):
+                p = Path(inv_data)
+                if not p.is_absolute():
+                    p = base / inv_data
+                referenced.add(str(p.resolve()))
+                if not p.exists():
+                    missing.append(str(p))
+    orphans = []
+    try:
+        if invoices_data.exists():
+            for f in invoices_data.iterdir():
+                if f.is_file():
+                    if str(f.resolve()) not in referenced:
+                        orphans.append(str(f))
+    except Exception:
+        pass
+
+    if missing:
+        click.echo("Missing invoice sidecars referenced by transactions:", err=True)
+        for m in missing:
+            click.echo(m, err=True)
+        had_error = True
+
+    if orphans:
+        click.echo("Orphan invoice sidecars (present but not referenced):", err=True)
+        for o in orphans:
+            click.echo(o, err=True)
+
+    if had_error:
+        sys.exit(2)
+    click.echo("Ledger OK", err=True)

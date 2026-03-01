@@ -9,7 +9,7 @@ Implemented invoice transaction parsing spike — extending task IV.2 to cover b
 
 ## Files added
 
-- `src/ledger/beancount_spike.py` — Added `extract_transaction_entries()` and `map_transaction_to_invoice()` functions
+- `src/arledge/beancount_spike.py` — Added `extract_transaction_entries()` and `map_transaction_to_invoice()` functions
 - `tests/spikes/test_invoice_transaction_parsing.py` — 17 tests covering raw parsing, model mapping, and edge cases (all passing)
 
 ## Key technical findings

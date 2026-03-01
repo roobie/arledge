@@ -9,18 +9,18 @@ Removed the legacy SQLite persistence layer and migrated the codebase and tests 
 ## Commands run (representative)
 - Ran full test suite repeatedly while migrating tests: `uv run pytest -q`
 - Searched code for `db.py` references: `rg "db.py|from ledger import db|db\.init_db"`
-- Removed legacy files: `git rm src/ledger/db.py src/ledger/migrations.py`
+- Removed legacy files: `git rm src/arledge/db.py src/arledge/migrations.py`
 - Edited CLI and MCP server to call beancount_write/beancount_store instead of db
 - Updated tests to use Click's isolated_filesystem and CLI create commands
 
 ## Files removed
-- src/ledger/db.py
-- src/ledger/migrations.py
+- src/arledge/db.py
+- src/arledge/migrations.py
 
 ## Files added/modified
-- Modified: src/ledger/cli.py (removed db usage, ensure beancount-first flows)
-- Modified: src/ledger/mcp_server.py (replaced db.* with beancount_write/beancount_store equivalents)
-- Modified: src/ledger/beancount_write.py (ensure ledger.beancount created on first write)
+- Modified: src/arledge/cli.py (removed db usage, ensure beancount-first flows)
+- Modified: src/arledge/mcp_server.py (replaced db.* with beancount_write/beancount_store equivalents)
+- Modified: src/arledge/beancount_write.py (ensure ledger.beancount created on first write)
 - Tests removed: tests/test_creditor.py, tests/test_db_operations.py, tests/test_db_path_resolution.py, tests/test_misc_uncovered.py, tests/test_force_coverage.py
 - Tests added: tests/test_smoke_cover.py, tests/test_spike_cover.py
 - Tests migrated/edited: many tests under tests/ (customer/creditor/invoice CLI flows now use beancount-first fixtures)

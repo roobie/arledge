@@ -29,7 +29,7 @@ Performed a local static validation of the GitHub Actions workflow file .github/
    - `actions/checkout@v4`, `actions/setup-python@v4`, and `actions/upload-artifact@v4` are used — versions look reasonable.
    - `python-version: '3.13'` is set. Check runner availability for 3.13 on GitHub-hosted runners if you need strict compatibility; as of this check it is likely supported, but confirm against GitHub docs for the runner images you use.
    - The `Install dependencies` step uses `pip install -e . || true` which will swallow installation errors and allow the workflow to continue even if installation fails. This can hide packaging or dependency issues and lead to confusing test failures later.
-   - Coverage target `--cov=ledger` matches the package layout (package under src/ledger as indicated by pyproject.toml), so that looks correct.
+   - Coverage target `--cov=ledger` matches the package layout (package under src/arledge as indicated by pyproject.toml), so that looks correct.
 
 ## Recommendations / Next steps
 1. Fail fast on install errors

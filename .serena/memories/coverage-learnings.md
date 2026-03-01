@@ -1,10 +1,10 @@
 Test coverage integration and results (2026-02-01)
 
 Summary:
-- Implemented test coverage analysis for the `arledge` project (package `ledger`).
+- Implemented test coverage analysis for the `arledge` project (package `arledge`).
 - Dev dependencies added via `uv`: `pytest-cov` and `coverage`.
-- Pytest config: updated `[tool.pytest.ini_options].addopts` in `pyproject.toml` to run coverage by default: `--cov=ledger --cov-report=xml:coverage.xml --cov-report=html:htmlcov --cov-fail-under=75` (threshold was temporarily set to 75% so the existing suite could pass; coverage later exceeded 90% and threshold can be raised).
-- Coverage config: `.coveragerc` added to omit `tests/*`, `*/__init__.py`, `ledger/migrations/*`, `.venv/*`, and `*/__pycache__/*`; HTML directory set to `htmlcov`.
+- Pytest config: updated `[tool.pytest.ini_options].addopts` in `pyproject.toml` to run coverage by default: `--cov=arledge --cov-report=xml:coverage.xml --cov-report=html:htmlcov --cov-fail-under=75` (threshold was temporarily set to 75% so the existing suite could pass; coverage later exceeded 90% and threshold can be raised).
+- Coverage config: `.coveragerc` added to omit `tests/*`, `*/__init__.py`, `arledge/migrations/*`, `.venv/*`, and `*/__pycache__/*`; HTML directory set to `htmlcov`.
 - CI: added `.github/workflows/ci.yml` to run tests on push/PR, install deps, run pytest with coverage, and upload `coverage.xml` and `htmlcov/` as artifacts.
 - .gitignore: updated to ignore `.coverage`, `coverage.xml`, `htmlcov/`, and `.pytest_cache/`.
 
@@ -21,8 +21,8 @@ Tests added (files):
 
 Key runtime commands (local):
 - Run tests: `uv run pytest` (pytest addopts include coverage flags)
-- Explicit run: `python -m pytest --cov=ledger --cov-report=xml:coverage.xml --cov-report=html:htmlcov --cov-fail-under=75`
-- Generate only HTML: `python -m pytest --cov=ledger --cov-report=html:htmlcov`
+- Explicit run: `python -m pytest --cov=arledge --cov-report=xml:coverage.xml --cov-report=html:htmlcov --cov-fail-under=75`
+- Generate only HTML: `python -m pytest --cov=arledge --cov-report=html:htmlcov`
 
 Current status and metrics:
 - Final measured coverage (after added tests): 91.02% (coverage.xml generated at repository root).

@@ -46,7 +46,7 @@ uv run arledge invoice list
 Notes:
 - Use `--model` to provide inline JSON text and `--model-file` to provide a path to a UTF-8 encoded JSON file (the CLI reads files with `encoding='utf-8'`).
 - JSON is validated using Pydantic (v2) with `Model.model_validate_json()`; validation errors and file-read errors are printed to stderr and the CLI exits non-zero (the code uses `sys.exit(2)` for these error conditions). Agents and scripts should check the process exit code before parsing stdout.
-- Use `ledger/config.dump_model()` to obtain a JSON-serializable Python dict for models; `dump_model` converts `Decimal` values to culture-invariant strings and `datetime` values to UTC ISO strings ending with `Z`. The CLI then uses `json.dumps(...)` to produce machine JSON from that dict.
+- Use `arledge/config.dump_model()` to obtain a JSON-serializable Python dict for models; `dump_model` converts `Decimal` values to culture-invariant strings and `datetime` values to UTC ISO strings ending with `Z`. The CLI then uses `json.dumps(...)` to produce machine JSON from that dict.
 
 ### Storage & invoice sequence
 
@@ -76,7 +76,7 @@ uv run arledge schema customer
 uv run arledge customer create --json-schema
 ```
 
-The schema is generated from the Pydantic models defined in `ledger/models.py`.
+The schema is generated from the Pydantic models defined in `arledge/models.py`.
 
 
 ## MCP stdio server

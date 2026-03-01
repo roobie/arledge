@@ -10,7 +10,7 @@
 
 [6] **Planner Agent (agents/planner.agent.md)** - Planner-agent config and rules for Serena: frontmatter lists tools/handoffs and mandates calling Serena MCP 'initial_instructions', loading memories, and reading README.md; workflow: research → draft plan → iterate; never implement code in planner phase [1][10].
 
-[7] **CLI Surface & Conventions (.serena/memories/cli-surface-and-conventions.md)** - Canonical CLI patterns: `arledge <group> <action>` in `ledger/cli.py`; JSON input via `--model`/`--model-file`; Pydantic model validation and machine JSON to stdout, human logs to stderr; tests exercise these behaviors [1][11].
+[7] **CLI Surface & Conventions (.serena/memories/cli-surface-and-conventions.md)** - Canonical CLI patterns: `arledge <group> <action>` in `arledge/cli.py`; JSON input via `--model`/`--model-file`; Pydantic model validation and machine JSON to stdout, human logs to stderr; tests exercise these behaviors [1][11].
 
 [8] **Coverage Learnings (.serena/memories/coverage-learnings.md)** - Coverage setup added pytest-cov/coverage, pyproject addopts, .coveragerc, CI workflow; final measured coverage 91.02% after tests and recommended next steps for reporting [1][12].
 
@@ -24,19 +24,19 @@
 
 [13] **Beancount Notes (docs/beancount.md)** - Double-entry bookkeeping reference: account types, transaction/posting rules, trial balance, reporting perspectives; used for `beancount_account` mappings [9].
 
-[14] **Repository Layout & Key Files** - Layout: `ledger/` package (cli.py, models.py, config.py, mcp_server.py, beancount_store.py, beancount_write.py, __main__.py), `tests/`, `.github/workflows/ci.yml`, `pyproject.toml`, README, and `.serena/memories/` [15][18].
+[14] **Repository Layout & Key Files** - Layout: `arledge/` package (cli.py, models.py, config.py, mcp_server.py, beancount_store.py, beancount_write.py, __main__.py), `tests/`, `.github/workflows/ci.yml`, `pyproject.toml`, README, and `.serena/memories/` [15][18].
 
-[15] **Entry Points & CLI Invocation** - Console script `arledge` maps to `ledger.cli:cli` in pyproject; `python -m ledger` uses `ledger.__main__` which calls `cli()`; tests use Click's CliRunner or `uv run arledge` [7][14].
+[15] **Entry Points & CLI Invocation** - Console script `arledge` maps to `arledge.cli:cli` in pyproject; `python -m arledge` uses `arledge.__main__` which calls `cli()`; tests use Click's CliRunner or `uv run arledge` [7][14].
 
 [16] **CLI Commands & UX** - Top-level CLI groups: `database`, `customer`, `creditor` (and `creditor account`), `invoice`, `mcp`; `schema` and `instructions` serve agent-facing needs; machine outputs to stdout, human logs to stderr, non-zero exit codes on errors [7][11][14].
 
 [17] **Pydantic Models (arledge/models.py)** - Models include Customer, Creditor, PaymentAccount, InvoiceLine, Invoice; validators coerce datetimes/decimals; InvoiceLine computes net/vat/line_total with ROUND_HALF_UP quantize(0.01); Invoice computes subtotal/total and sets created_at default UTC now; `model_version` uses package __version__ [11].
 
-[18] **Storage: Beancount files (arledge/beancount_store.py)** - Ledger is now file-first using Beancount include files and custom directives. `arledge/beancount_store.py` reads beancount loader entries and maps them to Pydantic models. Invoice lines are stored in JSON sidecar files referenced by transaction metadata. CLI create operations write beancount snippets via `ledger/beancount_write.py`. [9][17].
+[18] **Storage: Beancount files (arledge/beancount_store.py)** - Ledger is now file-first using Beancount include files and custom directives. `arledge/beancount_store.py` reads beancount loader entries and maps them to Pydantic models. Invoice lines are stored in JSON sidecar files referenced by transaction metadata. CLI create operations write beancount snippets via `arledge/beancount_write.py`. [9][17].
 
 [19] **Config Helpers & Serialization (arledge/config.py)** - Utilities: dt_to_iso_utc / iso_to_dt, decimal_to_str / decimal_to_str_currency, JSON_ENCODERS for Pydantic, and `dump_model()` converting datetimes and Decimals for CLI/MCP outputs [11][18].
 
-[20] **MCP stdio Server (ledger/mcp_server.py)** - FastMCP launcher with lazy imports; `start_mcp_stdio_server` supports `dry_run` for tests, registers tools mirroring CLI ops (customer/creditor/account/invoice), and prints a `ping` tool; CLI `mcp start` lazily imports this launcher [16].
+[20] **MCP stdio Server (arledge/mcp_server.py)** - FastMCP launcher with lazy imports; `start_mcp_stdio_server` supports `dry_run` for tests, registers tools mirroring CLI ops (customer/creditor/account/invoice), and prints a `ping` tool; CLI `mcp start` lazily imports this launcher [16].
 
 [21] **Migrations Strategy** - The project uses a file-first approach (Beancount). Traditional SQL migrations are not applicable; schema evolution focuses on beancount snippet formats and sidecar layout migrations. Historical SQLite migration notes were removed when storage migrated to beancount files.
 

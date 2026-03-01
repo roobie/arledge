@@ -5,7 +5,7 @@ beancount files and sidecar JSON files.
 
 This module is intentionally read-only and uses beancount.loader.load_file to
 parse ledger.beancount (which should include the includes/ files). It reuses
-mapping helpers in src/ledger/beancount_spike.py to build Pydantic models.
+mapping helpers in src/arledge/beancount_spike.py to build Pydantic models.
 """
 from __future__ import annotations
 from typing import List, Optional

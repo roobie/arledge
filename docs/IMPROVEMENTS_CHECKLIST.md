@@ -16,7 +16,7 @@ This checklist contains prioritized findings and suggested improvements from the
 - [x] Remove SQLite backend and adopt beancount-file-first storage
   - Priority: High
   - Rationale: Project standardised on beancount include files and JSON sidecars for invoices; SQLite is no longer used.
-  - Status: Done — `src/ledger/db.py` and `src/ledger/migrations.py` were removed; `arledge/beancount_store.py` handles reads and `ledger/beancount_write.py` handles writes. Tests were migrated to use the beancount CLI/write flow.
+  - Status: Done — `src/arledge/db.py` and `src/arledge/migrations.py` were removed; `arledge/beancount_store.py` handles reads and `arledge/beancount_write.py` handles writes. Tests were migrated to use the beancount CLI/write flow.
   - Suggested action (next): Remove legacy docs and references to `LEDGER_DB_PATH` and `db.init_db()` (done), and update any external deployment docs.
   - Suggested owner: Maintainer
   - Estimated effort remaining: 0.5 hours (docs sweep)

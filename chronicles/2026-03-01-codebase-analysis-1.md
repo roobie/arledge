@@ -11,16 +11,16 @@ Invoked the repository's built-in codebase-analysis workflow and performed an in
 - (cd .claude/skills/scripts && python3 -m skills.codebase_analysis.analyze --step 2)
 - ls -la
 - (read) ledger/cli.py
-- (read) ledger/models.py
+- (read) arledge/models.py
 - (read) ledger/beancount_store.py (note: SQLite-backed ledger/db.py was read in earlier analysis but has since been removed in favor of beancount_store)
-- (read) ledger/config.py
+- (read) arledge/config.py
 - (cd .claude/skills/scripts && python3 -m skills.codebase_analysis.analyze --step 3 --iteration 1 --confidence exploring)
 
 ## Files read
 - ledger/cli.py
-- ledger/models.py
+- arledge/models.py
 - ledger/db.py
-- ledger/config.py
+- arledge/config.py
 - pyproject.toml
 - README.md
 
@@ -29,7 +29,7 @@ Invoked the repository's built-in codebase-analysis workflow and performed an in
 
 ## Observations & Findings (high-level)
 - Project is a small Python CLI application named `arledge` (entrypoint: ledger/cli.py), exposing machine-friendly JSON outputs and agent instructions.
-- Data models are defined using Pydantic v2 in `ledger/models.py`; money and datetime handling use Decimal and timezone-aware datetimes with helpers in `ledger/config.py`.
+- Data models are defined using Pydantic v2 in `arledge/models.py`; money and datetime handling use Decimal and timezone-aware datetimes with helpers in `arledge/config.py`.
 - Persistence layer uses SQLite with helper functions in `ledger/db.py`. DB table prefixing is supported and validated via `config.arledge_db_prefix`.
 - The CLI enforces separating machine-output (stdout) and human-facing messages (stderr), and provides JSON schema discovery for agent integration.
 - Test coverage is comprehensive; many unit tests exist under `tests/`.

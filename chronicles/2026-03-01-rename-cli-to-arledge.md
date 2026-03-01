@@ -7,7 +7,7 @@
 Performed a repository-wide sweep to update CLI invocation examples and agent-facing instructions to reflect the executable name change from `ledger` -> `arledge` (pyproject defines the console script `arledge`). Changes include updates to the top-level README, the CLI `instructions` output, test helpers, the e2e README, and the MINDMAP. Also updated the e2e test helper to run `uv run arledge` so existing `run ledger ...` test bodies continue to work.
 
 ## Files modified
-- src/ledger/cli.py — updated top-level docstring examples, `ledger_contents` header, MCP example, `instructions` output (now uses `arledge` in examples), and schema help text.
+- src/arledge/cli.py — updated top-level docstring examples, `ledger_contents` header, MCP example, `instructions` output (now uses `arledge` in examples), and schema help text.
 - README.md — replaced examples invoking the CLI via `python -m ledger` / `uv run python -m ledger` with `uv run arledge` and updated uvx example to reference `arledge instructions`.
 - tests/e2e/helpers.sh — changed the test wrapper to call `uv run arledge` (previously `uv run ledger`).
 - tests/e2e/README.md — clarified that the bundled runner is at @vendor/brat/ and that the ledger() helper runs `uv run arledge`.
@@ -19,7 +19,7 @@ Performed a repository-wide sweep to update CLI invocation examples and agent-fa
 
 ## Commands run (representative)
 - rg/grep to locate occurrences
-- Edited files: src/ledger/cli.py, README.md, tests/e2e/helpers.sh, tests/e2e/README.md, MINDMAP.md
+- Edited files: src/arledge/cli.py, README.md, tests/e2e/helpers.sh, tests/e2e/README.md, MINDMAP.md
 - git add/commit
 
 ## Next steps

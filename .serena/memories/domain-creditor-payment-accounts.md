@@ -17,12 +17,12 @@ Invoice linkage & beancount mapping
 - `invoices` reference `creditor_id` and have `currency`; exporters prefer `payment_account.beancount_account`, fall back to `creditor.beancount_account`.
 
 Migrations & DB
-- `ledger/db.py` contains `init_db()` which is idempotent; for explicit migrations see `ledger/migrations.py` (placeholder for scripted migrations).
+- `arledge/db.py` contains `init_db()` which is idempotent; for explicit migrations see `arledge/migrations.py` (placeholder for scripted migrations).
 
 Files referenced
-- ledger/db.py
-- ledger/models.py
-- ledger/migrations.py
+- arledge/db.py
+- arledge/models.py
+- arledge/migrations.py
 
 Provenance
 - Consolidated from `creditors-payment-accounts-business-logic` and DB implementation notes.

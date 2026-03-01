@@ -7,7 +7,7 @@
 Implemented atomic, recoverable invoice-id allocation for the beancount-first write flow. Added tests to exercise initial allocation, sequential allocations, and recovery from a corrupt sequence file. Updated create_invoice to use the allocator.
 
 ## Changes made
-- src/ledger/beancount_write.py
+- src/arledge/beancount_write.py
   - Added _atomic_write helper that writes to a temporary file in the same directory and uses os.replace for atomic replace.
   - Implemented allocate_invoice_id() which:
     - Scans existing invoices to compute a recovery base (max id)

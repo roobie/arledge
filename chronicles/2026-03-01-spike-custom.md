@@ -10,7 +10,7 @@ directives round-trip metadata through beancount's loader and parser APIs.
 This implements IV.2 (custom directive spike) from the BEANCOUNT_REPLACEMENT_PLAN.
 
 ## Changes
-- Added: src/ledger/beancount_spike.py (helpers for extracting custom entries and mapping)
+- Added: src/arledge/beancount_spike.py (helpers for extracting custom entries and mapping)
 - Added: tests/spikes/test_custom_directive.py (pytest tests using beancount.loader and beancount.parser)
 
 ## Representative commands run
@@ -18,5 +18,5 @@ This implements IV.2 (custom directive spike) from the BEANCOUNT_REPLACEMENT_PLA
 
 ## Next steps
 - Run the tests in a local environment with beancount installed to validate behavior.
-- If the mapping heuristics need refinement, update src/ledger/beancount_spike.py to map onto Pydantic models directly.
-- Add a test that maps a Custom entry to src/ledger/models.Customer using the spike mapping helper.
+- If the mapping heuristics need refinement, update src/arledge/beancount_spike.py to map onto Pydantic models directly.
+- Add a test that maps a Custom entry to src/arledge/models.Customer using the spike mapping helper.

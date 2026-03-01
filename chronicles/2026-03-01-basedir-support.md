@@ -11,10 +11,10 @@ The `ledger init` and other filesystem-aware commands now use this base director
 
 ## Changes
 
-**Modified: src/ledger/config.py**
+**Modified: src/arledge/config.py**
 - Added `get_basedir()` helper which returns Path based on ARLEDGE_BASEDIR env var or current working directory.
 
-**Modified: src/ledger/cli.py**
+**Modified: src/arledge/cli.py**
 - `ledger init` now calls `config.get_basedir()` and initializes the layout at that path.
 - Enhanced top-level CLI docstring with Environment section explaining ARLEDGE_BASEDIR and example usage.
 - Enhanced `ledger init` command docstring with ARLEDGE_BASEDIR example.

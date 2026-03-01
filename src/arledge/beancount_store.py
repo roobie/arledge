@@ -54,15 +54,58 @@ def _entries_for_custom_type(custom_type: str) -> List[object]:
 # Customers
 
 def list_customers() -> List[models.Customer]:
+    """Return the latest mapping for each customer id.
+
+    If multiple custom entries for the same customer_id exist, prefer the
+    entry with the most recent date so that updates appended to the include
+    file are reflected.
+    """
     es = _entries_for_custom_type("customer")
-    res = []
+    latest: dict[int, object] = {}
     for e in es:
+        try:
+            meta = getattr(e, "meta", {}) or {}
+            cid = coerce_int(meta.get("customer_id"))
+            if cid is None:
+                continue
+            existing = latest.get(cid)
+            if existing is None:
+                latest[cid] = e
+                continue
+            d_new = getattr(e, "date", None)
+            d_old = getattr(existing, "date", None)
+            if d_new is None:
+                continue
+            if d_old is None or d_new >= d_old:
+                latest[cid] = e
+        except Exception:
+            continue
+    res: List[models.Customer] = []
+    for e in latest.values():
         try:
             res.append(map_custom_to_customer(e))
         except Exception:
-            # skip entries that fail to map
             continue
+    res.sort(key=lambda x: x.id or 0)
     return res
+
+
+def get_invoice_sidecar_path(invoice_id: int) -> Optional[Path]:
+    """Return the resolved filesystem Path to the invoice sidecar JSON for the given invoice_id, or None if not found."""
+    entries, errors, opts = _load_ledger_entries()
+    for e in entries:
+        if e.__class__.__name__ == "Transaction":
+            meta = getattr(e, "meta", {}) or {}
+            inv_id = coerce_int(meta.get("invoice_id"))
+            if inv_id == invoice_id:
+                inv_data = meta.get("invoice_data")
+                if not inv_data:
+                    return None
+                p = Path(inv_data)
+                if not p.is_absolute():
+                    p = config.get_basedir() / inv_data
+                return p
+    return None
 
 
 def get_customer(customer_id: int) -> Optional[models.Customer]:

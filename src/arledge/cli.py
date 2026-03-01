@@ -225,6 +225,70 @@ def customer_list():
     click.echo(json.dumps(out, ensure_ascii=False))
 
 
+@customer.command("update")
+@click.argument("customer_id", type=int)
+@click.option("--model", "model_json", default="", help="JSON object for Customer patch")
+@click.option(
+    "--model-file",
+    "model_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to JSON file containing Customer patch",
+)
+@click.option(
+    "--json-schema",
+    "json_schema",
+    is_flag=True,
+    default=False,
+    help="Print Pydantic JSON Schema for Customer and exit",
+)
+def customer_update(customer_id, model_json, model_file, json_schema):
+    """Patch-update a customer by appending an updated custom entry. Prints updated customer JSON to stdout."""
+    if json_schema:
+        click.echo(
+            json.dumps(models.Customer.model_json_schema(), indent=2, ensure_ascii=False)
+        )
+        return
+    if model_file:
+        try:
+            with open(model_file, "r", encoding="utf-8") as f:
+                model_json = f.read()
+        except Exception as e:
+            click.echo(f"Failed to read model file: {e}", err=True)
+            sys.exit(2)
+    if not model_json:
+        click.echo("Provide --model JSON or --model-file", err=True)
+        sys.exit(2)
+    try:
+        patch = json.loads(model_json)
+    except Exception as e:
+        click.echo(f"Invalid JSON: {e}", err=True)
+        sys.exit(2)
+    existing = beancount_store.get_customer(customer_id)
+    if not existing:
+        click.echo("Customer not found", err=True)
+        sys.exit(2)
+    try:
+        base = existing.model_dump()
+    except Exception:
+        base = config.dump_model(existing)
+    merged = {**base, **patch}
+    merged["id"] = customer_id
+    try:
+        cust = models.Customer.model_validate(merged)
+    except Exception as e:
+        click.echo(f"Invalid merged customer JSON: {e}", err=True)
+        sys.exit(2)
+    try:
+        from .beancount_write import update_customer
+
+        updated = update_customer(cust)
+    except Exception as e:
+        click.echo(f"Failed to update customer: {e}", err=True)
+        sys.exit(2)
+    click.echo(json.dumps(config.dump_model(updated), ensure_ascii=False))
+
+
 @cli.group()
 def creditor():
     """Creditor (us) commands"""
@@ -505,6 +569,70 @@ def invoice_create(model_json, model_file, json_schema):
     click.echo(json.dumps(out, ensure_ascii=False))
 
 
+@invoice.command("update")
+@click.argument("invoice_id", type=int)
+@click.option("--model", "model_json", default="", help="JSON object for Invoice patch")
+@click.option(
+    "--model-file",
+    "model_file",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to JSON file containing Invoice patch",
+)
+@click.option(
+    "--json-schema",
+    "json_schema",
+    is_flag=True,
+    default=False,
+    help="Print Pydantic JSON Schema for Invoice and exit",
+)
+def invoice_update(invoice_id, model_json, model_file, json_schema):
+    """Patch-update an invoice's sidecar data. Prints updated invoice JSON to stdout."""
+    if json_schema:
+        click.echo(json.dumps(models.Invoice.model_json_schema(), indent=2, ensure_ascii=False))
+        return
+    if model_file:
+        try:
+            with open(model_file, "r", encoding="utf-8") as f:
+                model_json = f.read()
+        except Exception as e:
+            click.echo(f"Failed to read model file: {e}", err=True)
+            sys.exit(2)
+    if not model_json:
+        click.echo("Provide --model JSON or --model-file", err=True)
+        sys.exit(2)
+    try:
+        patch = json.loads(model_json)
+    except Exception as e:
+        click.echo(f"Invalid JSON: {e}", err=True)
+        sys.exit(2)
+    existing = beancount_store.get_invoice(invoice_id)
+    if not existing:
+        click.echo("Invoice not found", err=True)
+        sys.exit(2)
+    try:
+        base = config.dump_model(existing)
+    except Exception:
+        base = existing.model_dump()
+    merged = {**base, **patch}
+    merged["id"] = invoice_id
+    try:
+        inv = models.Invoice.model_validate(merged)
+    except Exception as e:
+        click.echo(f"Invalid merged invoice JSON: {e}", err=True)
+        sys.exit(2)
+    try:
+        from .beancount_write import update_invoice
+
+        updated = update_invoice(inv)
+    except Exception as e:
+        click.echo(f"Failed to update invoice: {e}", err=True)
+        sys.exit(2)
+    out = config.dump_model(updated)
+    out["invoice_number"] = beancount_store.format_invoice_number(updated.id)
+    click.echo(json.dumps(out, ensure_ascii=False))
+
+
 @invoice.command("list")
 def invoice_list():
     invs = beancount_store.list_invoices()
@@ -648,6 +776,10 @@ Examples (agent-friendly):
 @cli.command("schema")
 @click.argument("name", type=str)
 def schema(name):
+    """Print Pydantic JSON Schema for a named model (customer, creditor, account, invoice).
+
+    Example: `arledge schema customer` prints the Customer JSON Schema to stdout.
+    """
     """Print Pydantic JSON Schema for a named model (customer, creditor, account, invoice).
 
     Example: `arledge schema customer` prints the Customer JSON Schema to stdout.

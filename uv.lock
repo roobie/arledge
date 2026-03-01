@@ -49,7 +49,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beancount", specifier = ">=3.2.0" },
+    { name = "beancount", specifier = ">=3.2.0,<3.3" },
     { name = "beanquery", specifier = ">=0.2.0" },
     { name = "build", specifier = ">=1.4.0" },
     { name = "click", specifier = ">=8.3.1" },

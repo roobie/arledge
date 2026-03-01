@@ -87,6 +87,28 @@ JSON_ENCODERS = {
     Decimal: decimal_to_str,
 }
 
+# Base directory configuration
+# If ARLEDGE_BASEDIR environment variable is set, use it as the project base directory.
+# Otherwise default to the current working directory.
+import os
+from pathlib import Path
+
+
+def get_basedir() -> Path:
+    """Return the arledge base directory as a pathlib.Path.
+
+    Respects the ARLEDGE_BASEDIR environment variable if set. The returned
+    Path is not created by this function; callers should create directories as
+    needed.
+    """
+    env = os.environ.get("ARLEDGE_BASEDIR")
+    if env:
+        return Path(env).expanduser().resolve()
+    return Path.cwd()
+
+# Backwards-compatible alias
+BASEDIR = get_basedir()
+
 
 def _serialize_value(v):
     if v is None:

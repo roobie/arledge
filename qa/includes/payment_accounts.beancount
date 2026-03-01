@@ -1,0 +1,8 @@
+2026-03-01 custom "payment_account" "Business Checking"
+  creditor_id: 7
+  type: "bank"
+  label: "Main checking"
+  identifier: "SE1234567890"
+  bank: "Nordea"
+  currency: "SEK"
+  is_default: "true"

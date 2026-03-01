@@ -1,0 +1,4 @@
+2026-03-01 custom "creditor" "Office Supplies Ltd"
+  creditor_id: 7
+  email: "billing@office.example"
+  address: "456 Avenue"

@@ -1,0 +1,11 @@
+{
+  "invoice_id": 1,
+  "lines": [
+    {
+      "description": "Consulting services",
+      "quantity": 1,
+      "unit_price": "1000.00",
+      "vat_rate": "25"
+    }
+  ]
+}

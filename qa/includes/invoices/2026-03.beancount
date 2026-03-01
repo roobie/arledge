@@ -1,0 +1,7 @@
+2026-03-01 * "Invoice INV-0001"
+  invoice_id: 1
+  customer_id: 1
+  invoice_data: "includes/invoices/data/inv-0001.json"
+  Assets:Receivable:ACME        1250.00 SEK
+  Income:Services              -1000.00 SEK
+  Liabilities:VAT               -250.00 SEK

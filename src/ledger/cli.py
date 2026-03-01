@@ -1,7 +1,7 @@
 import click
 import json
 import sys
-from . import db, models, config
+from . import db, models, config, beancount_store
 
 
 @click.group()
@@ -14,6 +14,14 @@ def cli():
     and validation/file errors are printed to stderr. Validation and
     file-read errors exit with a non-zero code (the implementation
     currently uses ``sys.exit(2)`` for these error conditions).
+
+    Environment:
+    - Set ARLEDGE_BASEDIR to point to a different project directory if you want
+      commands (init, list, create, export) to operate on a specific base
+      directory. If unset, commands operate on the current working directory.
+
+    Run the CLI with the project-friendly runner:
+      uv run ledger
     """
     pass
 
@@ -36,7 +44,7 @@ def initialize():
 def init(force):
     """Initialize beancount-first directory layout for arledge (ledger.beancount, includes/, .arledge/).
 
-    Creates the following structure in the current working directory:
+    Creates the following structure in the configured base directory (see ARLEDGE_BASEDIR):
 
       ledger.beancount
       includes/
@@ -49,13 +57,20 @@ def init(force):
       .arledge/
         invoice_seq
 
+    By default the base directory is the current working directory. To target
+    a different directory, set the ARLEDGE_BASEDIR environment variable before
+    running the command. Example:
+
+      ARLEDGE_BASEDIR=/path/to/project uv run ledger init
+
     If files/directories already exist the command will not overwrite them
     unless --force is provided.
     """
     from pathlib import Path
     import datetime
 
-    cwd = Path.cwd()
+    # Respect ARLEDGE_BASEDIR environment variable if set (see ledger.config.get_basedir())
+    cwd = config.get_basedir()
     ledger_file = cwd / "ledger.beancount"
     includes_dir = cwd / "includes"
     includes_customers = includes_dir / "customers.beancount"
@@ -208,7 +223,7 @@ def customer_create(model_json, model_file, json_schema):
 
 @customer.command("list")
 def customer_list():
-    customers = db.list_customers()
+    customers = beancount_store.list_customers()
     if not customers:
         click.echo("No customers", err=True)
         return
@@ -269,7 +284,7 @@ def creditor_create(model_json, model_file, json_schema):
 
 @creditor.command("list")
 def creditor_list():
-    creds = db.list_creditors()
+    creds = beancount_store.list_creditors()
     if not creds:
         click.echo("No creditors", err=True)
         return
@@ -280,7 +295,7 @@ def creditor_list():
 @creditor.command("view")
 @click.argument("creditor_id", type=int)
 def creditor_view(creditor_id):
-    c = db.get_creditor(creditor_id)
+    c = beancount_store.get_creditor(creditor_id)
     if not c:
         click.echo("Creditor not found", err=True)
         sys.exit(2)
@@ -343,7 +358,7 @@ def account_create(model_json, model_file, json_schema):
 @account.command("list")
 @click.option("--creditor-id", type=int, default=None)
 def account_list(creditor_id):
-    rows = db.list_payment_accounts(creditor_id=creditor_id)
+    rows = beancount_store.list_payment_accounts(creditor_id=creditor_id)
     if not rows:
         click.echo("No payment accounts", err=True)
         return
@@ -405,7 +420,7 @@ def invoice_create(model_json, model_file, json_schema):
 
 @invoice.command("list")
 def invoice_list():
-    invs = db.list_invoices()
+    invs = beancount_store.list_invoices()
     if not invs:
         click.echo("No invoices", err=True)
         return
@@ -416,7 +431,7 @@ def invoice_list():
 @invoice.command("view")
 @click.argument("invoice_id", type=int)
 def invoice_view(invoice_id):
-    inv = db.get_invoice(invoice_id)
+    inv = beancount_store.get_invoice(invoice_id)
     if not inv:
         click.echo("Invoice not found", err=True)
         sys.exit(2)
@@ -429,7 +444,7 @@ def invoice_view(invoice_id):
 @click.option("--path", default=None)
 def invoice_export(invoice_id, fmt, path):
     if fmt == "json":
-        out = db.export_invoice_json(invoice_id, path=path)
+        out = beancount_store.export_invoice_json(invoice_id, path=path)
         if not out:
             click.echo("Invoice not found", err=True)
             sys.exit(2)

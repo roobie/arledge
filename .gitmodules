@@ -1,3 +1,6 @@
 [submodule ".claude"]
 	path = .claude
 	url = git@github.com:roobie/claude-config.git
+[submodule "vendor/brat"]
+	path = vendor/brat
+	url = https://codeberg.org/sstephenson/brat.git

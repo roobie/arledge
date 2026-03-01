@@ -5,8 +5,13 @@ uv = "0.9"
 [tasks.fmt]
 run = "uvx ruff format ."
 
-[tasks.test]
+[tasks.e2etest]
+run = "./script/test-e2e"
+[tasks.pytest]
 run = "uv run pytest"
+
+[tasks.test]
+depends = ["pytest", "e2etest"]
 
 [tasks.testcov]
 run = "uv run pytest --cov=ledger --cov-report=html:htmlcov"

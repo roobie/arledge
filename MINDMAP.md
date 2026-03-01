@@ -10,7 +10,7 @@
 
 [6] **Planner Agent (agents/planner.agent.md)** - Planner-agent config and rules for Serena: frontmatter lists tools/handoffs and mandates calling Serena MCP 'initial_instructions', loading memories, and reading README.md; workflow: research → draft plan → iterate; never implement code in planner phase [1][10].
 
-[7] **CLI Surface & Conventions (.serena/memories/cli-surface-and-conventions.md)** - Canonical CLI patterns: `ledger <group> <action>` in `ledger/cli.py`; JSON input via `--model`/`--model-file`; Pydantic model validation and machine JSON to stdout, human logs to stderr; tests exercise these behaviors [1][11].
+[7] **CLI Surface & Conventions (.serena/memories/cli-surface-and-conventions.md)** - Canonical CLI patterns: `arledge <group> <action>` in `ledger/cli.py`; JSON input via `--model`/`--model-file`; Pydantic model validation and machine JSON to stdout, human logs to stderr; tests exercise these behaviors [1][11].
 
 [8] **Coverage Learnings (.serena/memories/coverage-learnings.md)** - Coverage setup added pytest-cov/coverage, pyproject addopts, .coveragerc, CI workflow; final measured coverage 91.02% after tests and recommended next steps for reporting [1][12].
 
@@ -26,7 +26,7 @@
 
 [14] **Repository Layout & Key Files** - Layout: `ledger/` package (cli.py, models.py, config.py, mcp_server.py, beancount_store.py, beancount_write.py, __main__.py), `tests/`, `.github/workflows/ci.yml`, `pyproject.toml`, README, and `.serena/memories/` [15][18].
 
-[15] **Entry Points & CLI Invocation** - Console script `ledger` maps to `ledger.cli:cli` in pyproject; `python -m ledger` uses `ledger.__main__` which calls `cli()`; tests use Click's CliRunner or `uv run python -m ledger` [7][14].
+[15] **Entry Points & CLI Invocation** - Console script `arledge` maps to `ledger.cli:cli` in pyproject; `python -m ledger` uses `ledger.__main__` which calls `cli()`; tests use Click's CliRunner or `uv run arledge` [7][14].
 
 [16] **CLI Commands & UX** - Top-level CLI groups: `database`, `customer`, `creditor` (and `creditor account`), `invoice`, `mcp`; `schema` and `instructions` serve agent-facing needs; machine outputs to stdout, human logs to stderr, non-zero exit codes on errors [7][11][14].
 
@@ -42,7 +42,7 @@
 
 [22] **Tests & Coverage (tests/)** - Test suite covers CLI, DB CRUD integration, model property tests, serialization/config tests, and CLI error branches; pytest configured in pyproject with coverage addopts; local measured coverage was 76.13% with reports output to coverage.xml and htmlcov/ [7][8][13].
 
-[23] **CI Configuration (.github/workflows/ci.yml)** - GitHub Actions job uses Python 3.13, installs deps, runs pytest with `--cov-fail-under=80`, and uploads coverage artifacts; suggest aligning local and CI thresholds [8][22].
+[23] **CI Configuration (.github/workflows/ci.yml)** - GitHub Actions job uses Python 3.13, installs deps, runs pytest with `--cov-fail-under=75`, and uploads coverage artifacts; suggest aligning local and CI thresholds [8][22].
 
 [24] **Packaging & Dependencies (pyproject.toml)** - Project metadata: name `arledge`, version `0.1.0`, console script `ledger`; dependencies include click, pydantic, mcp[cli], beancount, pytest; note pyproject requires Python >=3.13 while README/code may support older versions [14][23].
 

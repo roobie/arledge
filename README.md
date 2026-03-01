@@ -10,7 +10,7 @@ Requirements:
 
 ```bash
 # Use uv to run this program
-❯ uvx --from git+https://github.com/roobie/arledge ledger instructions
+❯ uvx --from git+https://github.com/roobie/arledge arledge instructions
 ```
 
 ### Quick CLI examples (machine-friendly)
@@ -21,26 +21,26 @@ Examples (inline JSON):
 
 ```bash
 # Initialize the beancount layout (creates ledger.beancount, includes/, .arledge/)
-uv run python -m ledger init
+uv run arledge init
 
 # Create a customer from JSON (prints created customer JSON to stdout)
-uv run python -m ledger customer create --model '{"name":"ACME","email":"sales@example.com","address":"123 Road"}'
+uv run arledge customer create --model '{"name":"ACME","email":"sales@example.com","address":"123 Road"}'
 
 # Create a creditor from file (prints created creditor JSON to stdout)
-uv run python -m ledger creditor create --model-file ./creditor.json
+uv run arledge creditor create --model-file ./creditor.json
 
 # Create a payment account for a creditor
-uv run python -m ledger creditor account create --model '{"creditor_id":1,"type":"bank","identifier":"SE455...","currency":"SEK"}'
+uv run arledge creditor account create --model '{"creditor_id":1,"type":"bank","identifier":"SE455...","currency":"SEK"}'
 
 # Create an invoice (lines must be an array of objects)
-uv run python -m ledger invoice create --model '{"customer_id":1,"lines":[{"description":"Service","quantity":1,"unit_price":"1000.00","vat_rate":"25"}]}'
+uv run arledge invoice create --model '{"customer_id":1,"lines":[{"description":"Service","quantity":1,"unit_price":"1000.00","vat_rate":"25"}]}'
 
 # Export an invoice to JSON (prints exported path to stdout)
-uv run python -m ledger invoice export 1 --format json --path invoice-1.json
+uv run arledge invoice export 1 --format json --path invoice-1.json
 
 # List customers or invoices (outputs JSON array to stdout)
-uv run python -m ledger customer list
-uv run python -m ledger invoice list
+uv run arledge customer list
+uv run arledge invoice list
 ```
 
 Notes:
@@ -61,7 +61,7 @@ Example: allocate and create a new invoice
 
 ```bash
 # Create an invoice; CLI prints invoice JSON which includes `invoice_number`
-uv run python -m ledger invoice create --model '{"customer_id":1,"lines":[{"description":"Service","unit_price":"1000.00"}]}'
+uv run arledge invoice create --model '{"customer_id":1,"lines":[{"description":"Service","unit_price":"1000.00"}]}'
 ```
 
 ### Schema examples
@@ -70,10 +70,10 @@ You can print the Pydantic JSON Schema for models either via the top-level `sche
 
 ```bash
 # Top-level schema command
-uv run python -m ledger schema customer
+uv run arledge schema customer
 
 # Per-command schema flag
-uv run python -m ledger customer create --json-schema
+uv run arledge customer create --json-schema
 ```
 
 The schema is generated from the Pydantic models defined in `ledger/models.py`.
@@ -85,10 +85,10 @@ This project can run an MCP server over stdin/stdout using the official `mcp` pa
 
 ```
 # Dry-run (validate imports and configuration, then exit)
-uv run python -m ledger mcp start --dry-run
+uv run arledge mcp start --dry-run
 
 # Start the stdio MCP server (blocks, listens on stdin/stdout)
-uv run python -m ledger mcp start
+uv run arledge mcp start
 ```
 
 Example `FastMCP` usage (the server launcher registers a minimal `ping` tool):

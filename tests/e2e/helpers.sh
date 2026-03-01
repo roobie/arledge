@@ -3,7 +3,7 @@
 
 # Wrapper for ledger command with proper uv context
 ledger() {
-  ARLEDGE_BASEDIR="$BASEDIR" uv run ledger "$@"
+  ARLEDGE_BASEDIR="$BASEDIR" uv run arledge "$@"
 }
 
 # Create and initialize a temp base directory for the test

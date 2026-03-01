@@ -8,22 +8,22 @@ teardown() { teardown_basedir; }
 
 @test "creditor create with valid JSON exits 0" {
   model=$(jq -nc '{name: "Office Supplies Ltd", email: "billing@office.example"}')
-  run ledger creditor create --model "$model"
+  run arledge creditor create --model "$model"
   [ $status -eq 0 ]
 }
 
 @test "creditor create stdout contains name" {
   model=$(jq -nc '{name: "Office Supplies Ltd", email: "billing@office.example"}')
-  run ledger creditor create --model "$model"
+  run arledge creditor create --model "$model"
   [ $status -eq 0 ]
   match "$stdout" '/"name":\s*"Office Supplies Ltd"/'
 }
 
 @test "creditor list after create contains the creditor" {
   model=$(jq -nc '{name: "MyCorp", email: "billing@my.example"}')
-  run ledger creditor create --model "$model"
+  run arledge creditor create --model "$model"
   [ $status -eq 0 ]
-  run ledger creditor list
+  run arledge creditor list
   [ $status -eq 0 ]
   match "$stdout" '/"name":\s*"MyCorp"/'
 }
@@ -31,21 +31,21 @@ teardown() { teardown_basedir; }
 @test "creditor view returns the creditor by id" {
   require_jq
   model=$(jq -nc '{name: "ViewTest", email: "v@test.example"}')
-  run ledger creditor create --model "$model"
+  run arledge creditor create --model "$model"
   [ $status -eq 0 ]
   id=$(jq_field '.id' "$stdout")
-  run ledger creditor view "$id"
+  run arledge creditor view "$id"
   [ $status -eq 0 ]
   match "$stdout" '/"name":\s*"ViewTest"/'
 }
 
 @test "creditor account create exits 0 and returns type and creditor_id" {
   model=$(jq -nc '{name: "Bank Corp", email: "bank@corp.example"}')
-  run ledger creditor create --model "$model"
+  run arledge creditor create --model "$model"
   [ $status -eq 0 ]
   cred_id=$(jq_field '.id' "$stdout")
   account_model=$(jq -nc --arg cid "$cred_id" '{creditor_id: ($cid | tonumber), type: "bank", identifier: "SE123456789", currency: "SEK"}')
-  run ledger creditor account create --model "$account_model"
+  run arledge creditor account create --model "$account_model"
   [ $status -eq 0 ]
   match "$stdout" '/"type":\s*"bank"/'
   match "$stdout" "\"creditor_id\": $cred_id"
@@ -55,20 +55,20 @@ teardown() { teardown_basedir; }
   require_jq
   # Create a creditor
   model=$(jq -nc '{name: "Bank1", email: "b1@test.example"}')
-  run ledger creditor create --model "$model"
+  run arledge creditor create --model "$model"
   [ $status -eq 0 ]
   cred_id=$(jq_field '.id' "$stdout")
   # Create an account for that creditor
   account_model=$(jq -nc --arg cid "$cred_id" '{creditor_id: ($cid | tonumber), type: "bank", identifier: "SE111", currency: "SEK"}')
-  run ledger creditor account create --model "$account_model"
+  run arledge creditor account create --model "$account_model"
   [ $status -eq 0 ]
   # List accounts for that creditor
-  run ledger creditor account list --creditor-id "$cred_id"
+  run arledge creditor account list --creditor-id "$cred_id"
   [ $status -eq 0 ]
   match "$stdout" "\"creditor_id\": $cred_id"
 }
 
 @test "creditor view with nonexistent id exits with error" {
-  run ledger creditor view 99999
+  run arledge creditor view 99999
   [ $status -eq 2 ]
 }

@@ -8,21 +8,21 @@ teardown() { teardown_basedir; }
 
 @test "invoice create with customer and lines exits 0" {
   model=$(jq -nc '{name: "Customer1", email: "c1@test.example"}')
-  run ledger customer create --model "$model"
+  run arledge customer create --model "$model"
   [ $status -eq 0 ]
   customer_id=$(jq_field '.id' "$stdout")
   model=$(jq -nc --arg cid "$customer_id" '{customer_id: ($cid | tonumber), lines: [{description: "Service", quantity: "1", unit_price: "1000.00", vat_rate: "25"}]}')
-  run ledger invoice create --model "$model"
+  run arledge invoice create --model "$model"
   [ $status -eq 0 ]
 }
 
 @test "invoice create stdout contains invoice_number and total" {
   model=$(jq -nc '{name: "Customer2", email: "c2@test.example"}')
-  run ledger customer create --model "$model"
+  run arledge customer create --model "$model"
   [ $status -eq 0 ]
   customer_id=$(jq_field '.id' "$stdout")
   model=$(jq -nc --arg cid "$customer_id" '{customer_id: ($cid | tonumber), lines: [{description: "Work", quantity: "1", unit_price: "500.00", vat_rate: "0"}]}')
-  run ledger invoice create --model "$model"
+  run arledge invoice create --model "$model"
   [ $status -eq 0 ]
   match "$stdout" '/"invoice_number":\s*/'
   match "$stdout" '/"total":\s*/'
@@ -31,11 +31,11 @@ teardown() { teardown_basedir; }
 @test "invoice create generates invoice_number in INV-NNNN format" {
   require_jq
   model=$(jq -nc '{name: "Customer3", email: "c3@test.example"}')
-  run ledger customer create --model "$model"
+  run arledge customer create --model "$model"
   [ $status -eq 0 ]
   customer_id=$(jq_field '.id' "$stdout")
   model=$(jq -nc --arg cid "$customer_id" '{customer_id: ($cid | tonumber), lines: [{description: "Item", quantity: "1", unit_price: "100.00", vat_rate: "0"}]}')
-  run ledger invoice create --model "$model"
+  run arledge invoice create --model "$model"
   [ $status -eq 0 ]
   invoice_number=$(jq_field '.invoice_number' "$stdout")
   match "$stdout" '/"invoice_number": "INV-[0-9]/'
@@ -44,13 +44,13 @@ teardown() { teardown_basedir; }
 @test "invoice list after create contains the invoice" {
   require_jq
   model=$(jq -nc '{name: "Customer4", email: "c4@test.example"}')
-  run ledger customer create --model "$model"
+  run arledge customer create --model "$model"
   [ $status -eq 0 ]
   customer_id=$(jq_field '.id' "$stdout")
   model=$(jq -nc --arg cid "$customer_id" '{customer_id: ($cid | tonumber), lines: [{description: "Task", quantity: "1", unit_price: "250.00", vat_rate: "25"}]}')
-  run ledger invoice create --model "$model"
+  run arledge invoice create --model "$model"
   [ $status -eq 0 ]
-  run ledger invoice list
+  run arledge invoice list
   [ $status -eq 0 ]
   match "$stdout" '/"customer_id":\s*/'
 }
@@ -58,14 +58,14 @@ teardown() { teardown_basedir; }
 @test "invoice view returns invoice by id" {
   require_jq
   model=$(jq -nc '{name: "Customer5", email: "c5@test.example"}')
-  run ledger customer create --model "$model"
+  run arledge customer create --model "$model"
   [ $status -eq 0 ]
   customer_id=$(jq_field '.id' "$stdout")
   model=$(jq -nc --arg cid "$customer_id" '{customer_id: ($cid | tonumber), lines: [{description: "Consulting", quantity: "2", unit_price: "750.00", vat_rate: "25"}]}')
-  run ledger invoice create --model "$model"
+  run arledge invoice create --model "$model"
   [ $status -eq 0 ]
   invoice_id=$(jq_field '.id' "$stdout")
-  run ledger invoice view "$invoice_id"
+  run arledge invoice view "$invoice_id"
   [ $status -eq 0 ]
   match "$stdout" "\"id\": $invoice_id"
 }
@@ -73,42 +73,42 @@ teardown() { teardown_basedir; }
 @test "invoice export writes file and returns path" {
   require_jq
   model=$(jq -nc '{name: "Customer6", email: "c6@test.example"}')
-  run ledger customer create --model "$model"
+  run arledge customer create --model "$model"
   [ $status -eq 0 ]
   customer_id=$(jq_field '.id' "$stdout")
   model=$(jq -nc --arg cid "$customer_id" '{customer_id: ($cid | tonumber), lines: [{description: "Service", quantity: "1", unit_price: "1000.00", vat_rate: "25"}]}')
-  run ledger invoice create --model "$model"
+  run arledge invoice create --model "$model"
   [ $status -eq 0 ]
   invoice_id=$(jq_field '.id' "$stdout")
   export_dir="$BASEDIR/exports"
   mkdir -p "$export_dir"
   export_path="$export_dir/invoice-$invoice_id.json"
-  run ledger invoice export "$invoice_id" --format json --path "$export_path"
+  run arledge invoice export "$invoice_id" --format json --path "$export_path"
   [ $status -eq 0 ]
   [ -f "$export_path" ]
 }
 
 @test "invoice export with nonexistent id exits with error" {
-  run ledger invoice export 99999 --format json --path "$TEST_TMP/export.json"
+  run arledge invoice export 99999 --format json --path "$TEST_TMP/export.json"
   [ $status -eq 2 ]
 }
 
 @test "sequential invoice creates increment invoice_number" {
   require_jq
   model=$(jq -nc '{name: "Customer7", email: "c7@test.example"}')
-  run ledger customer create --model "$model"
+  run arledge customer create --model "$model"
   [ $status -eq 0 ]
   customer_id=$(jq_field '.id' "$stdout")
 
   # Create first invoice
   model=$(jq -nc --arg cid "$customer_id" '{customer_id: ($cid | tonumber), lines: [{description: "First", quantity: "1", unit_price: "100.00", vat_rate: "0"}]}')
-  run ledger invoice create --model "$model"
+  run arledge invoice create --model "$model"
   [ $status -eq 0 ]
   first_number=$(jq_field '.invoice_number' "$stdout")
 
   # Create second invoice
   model=$(jq -nc --arg cid "$customer_id" '{customer_id: ($cid | tonumber), lines: [{description: "Second", quantity: "1", unit_price: "100.00", vat_rate: "0"}]}')
-  run ledger invoice create --model "$model"
+  run arledge invoice create --model "$model"
   [ $status -eq 0 ]
   second_number=$(jq_field '.invoice_number' "$stdout")
 

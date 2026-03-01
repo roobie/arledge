@@ -15,7 +15,7 @@ How tests run
 
 - script/test-e2e invokes vendor/brat/bin/brat on the .brat files in this directory.
 - helpers.sh provides:
-  - ledger() wrapper that runs `uv run ledger ...` with ARLEDGE_BASEDIR set to the test's temporary base directory
+  - ledger() wrapper that runs `uv run arledge ...` with ARLEDGE_BASEDIR set to the test's temporary base directory
   - setup_basedir/teardown_basedir to create and remove a temporary ARLEDGE_BASEDIR
   - jq_field() to extract JSON fields from CLI stdout
   - require_jq() to skip tests when jq is not available
@@ -35,13 +35,13 @@ Model construction pattern
 Tests use jq -nc to construct JSON models in a readable way, e.g.:
 
   model=$(jq -nc '{name: "ACME Corp", email: "sales@acme.example"}')
-  run ledger customer create --model "$model"
+  run arledge customer create --model "$model"
 
 When a created object's id is required for a follow-up request, tests use jq -nc with --arg and tonumber, e.g.:
 
   cred_id=$(jq_field '.id' "$stdout")
   account_model=$(jq -nc --arg cid "$cred_id" '{creditor_id: ($cid | tonumber), type: "bank", identifier: "SE123456789", currency: "SEK"}')
-  run ledger creditor account create --model "$account_model"
+  run arledge creditor account create --model "$account_model"
 
 This pattern avoids brittle escaping and keeps test JSON readable.
 

@@ -1,8 +1,8 @@
 #!/bin/sh
 # Shared helpers for e2e brat tests
 
-# Wrapper for ledger command with proper uv context
-ledger() {
+# Wrapper for arledge command with proper uv context
+arledge() {
   ARLEDGE_BASEDIR="$BASEDIR" uv run arledge "$@"
 }
 
@@ -11,7 +11,7 @@ setup_basedir() {
   BASEDIR="$(mktemp -d)"
   export ARLEDGE_BASEDIR="$BASEDIR"
   # Initialize the beancount layout
-  ledger init >/dev/null 2>&1
+  arledge init >/dev/null 2>&1
 }
 
 # Remove the temp base directory

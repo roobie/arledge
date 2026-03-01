@@ -3,7 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, field_validator, model_validator, Field
 
 from . import __version__
 
@@ -44,7 +44,7 @@ class PaymentAccount(BaseModel):
     currency: Optional[str] = None
     beancount_account: Optional[str] = None
     is_default: bool = False
-    metadata: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = Field(default_factory=dict)
     created_at: Optional[datetime] = None
 
     @field_validator("created_at", mode="before")
@@ -108,7 +108,7 @@ class Invoice(BaseModel):
     description: Optional[str] = None
     creditor_id: Optional[int] = None
     currency: str = "SEK"
-    lines: List[InvoiceLine] = []
+    lines: List[InvoiceLine] = Field(default_factory=list)
     subtotal: Optional[Decimal] = None
     total_vat: Optional[Decimal] = None
     total: Optional[Decimal] = None

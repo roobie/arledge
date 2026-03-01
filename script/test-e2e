@@ -1,0 +1,4 @@
+#!/bin/sh
+# Run brat e2e tests
+set -e
+exec vendor/brat/bin/brat tests/e2e/*.brat "$@"

@@ -67,3 +67,8 @@
   customer_id: 11
   email: "x@a.test"
 
+
+2026-03-01 custom "customer" "ACME"
+  customer_id: 12
+  email: "x@a.test"
+

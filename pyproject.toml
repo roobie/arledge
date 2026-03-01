@@ -3,7 +3,7 @@ name = "arledge"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "beancount>=3.2.0",
     "beanquery>=0.2.0",

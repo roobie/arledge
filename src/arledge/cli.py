@@ -338,12 +338,35 @@ def creditor_update(creditor_id, model_json, model_file, json_schema):
         click.echo("Provide --model JSON or --model-file", err=True)
         sys.exit(2)
     try:
-        cred = models.Creditor.model_validate_json(model_json)
+        # Parse patch as a dict so missing fields are distinguishable (PATCH semantics)
+        patch = json.loads(model_json)
     except Exception as e:
-        click.echo(f"Invalid creditor JSON: {e}", err=True)
+        click.echo(f"Invalid JSON: {e}", err=True)
         sys.exit(2)
-    # enforce requested id
-    cred.id = creditor_id
+
+    # Load existing creditor to apply patch
+    existing = beancount_store.get_creditor(creditor_id)
+    if not existing:
+        click.echo("Creditor not found", err=True)
+        sys.exit(2)
+
+    try:
+        # existing is a Pydantic model; get a dict representation to merge
+        base = existing.model_dump()
+    except Exception:
+        # Fallback to dump_model which returns JSON-serializable dict
+        base = config.dump_model(existing)
+
+    # Merge patch onto base (PATCH semantics: keys present in patch overwrite)
+    merged = {**base, **patch}
+    # Ensure id matches creditor_id
+    merged["id"] = creditor_id
+
+    try:
+        cred = models.Creditor.model_validate(merged)
+    except Exception as e:
+        click.echo(f"Invalid merged creditor JSON: {e}", err=True)
+        sys.exit(2)
     try:
         from .beancount_write import update_creditor
 

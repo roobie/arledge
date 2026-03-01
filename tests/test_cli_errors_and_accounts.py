@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from click.testing import CliRunner
 
-from ledger import cli, models
+from arledge import cli, models
 
 
 def test_invalid_json_for_create(tmp_path):

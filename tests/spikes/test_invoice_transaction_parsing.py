@@ -16,11 +16,11 @@ from pathlib import Path
 import pytest
 from beancount.loader import load_string
 
-from ledger.beancount_spike import (
+from arledge.beancount_spike import (
     extract_transaction_entries,
     map_transaction_to_invoice,
 )
-from ledger.models import Invoice, InvoiceLine
+from arledge.models import Invoice, InvoiceLine
 
 
 # -- Helpers --

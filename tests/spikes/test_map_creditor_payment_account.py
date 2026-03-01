@@ -1,8 +1,8 @@
 import textwrap
 from beancount.loader import load_string
 
-from ledger.beancount_spike import map_custom_to_creditor, map_custom_to_payment_account
-from ledger.models import Creditor, PaymentAccount
+from arledge.beancount_spike import map_custom_to_creditor, map_custom_to_payment_account
+from arledge.models import Creditor, PaymentAccount
 
 
 def test_map_creditor_and_payment_account():

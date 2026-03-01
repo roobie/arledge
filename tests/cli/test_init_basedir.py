@@ -1,7 +1,7 @@
 import os
 from click.testing import CliRunner
 import tempfile
-from ledger.cli import cli
+from arledge.cli import cli
 
 
 def test_init_uses_arledge_basedir(monkeypatch, tmp_path):

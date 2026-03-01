@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timezone
 
-from ledger import models, config
+from arledge import models, config
 
 
 def test_str_to_decimal_none_and_decimal_input():

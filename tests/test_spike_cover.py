@@ -1,8 +1,8 @@
 from datetime import date, datetime, timezone
 import json
 
-from ledger import beancount_spike as spike
-from ledger import config
+from arledge import beancount_spike as spike
+from arledge import config
 
 
 class DummyEntry:

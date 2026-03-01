@@ -1,4 +1,4 @@
-from ledger.beancount_spike import detect_entry_title, coerce_decimal
+from arledge.beancount_spike import detect_entry_title, coerce_decimal
 
 
 class Dummy:

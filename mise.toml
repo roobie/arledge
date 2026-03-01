@@ -14,4 +14,4 @@ run = "uv run pytest"
 depends = ["pytest", "e2etest"]
 
 [tasks.testcov]
-run = "uv run pytest --cov=ledger --cov-report=html:htmlcov"
+run = "uv run pytest --cov=arledge --cov-report=html:htmlcov"

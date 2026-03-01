@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from ledger import config
+from arledge import config
 
 
 def test_dt_iso_roundtrip():

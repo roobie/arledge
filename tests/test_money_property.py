@@ -3,7 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from hypothesis import given, strategies as st, settings
 
-from ledger import config
+from arledge import config
 
 
 pattern = re.compile(r"^-?\d+\.\d{2}$")

@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from click.testing import CliRunner
 
-from ledger import cli, models, config
+from arledge import cli, models, config
 
 
 def test_customer_and_creditor_via_file(tmp_path):

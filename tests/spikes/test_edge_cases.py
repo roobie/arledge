@@ -2,13 +2,13 @@ import textwrap
 from beancount.loader import load_string
 from beancount.parser import parser
 
-from ledger.beancount_spike import (
+from arledge.beancount_spike import (
     map_custom_to_customer,
     map_custom_to_payment_account,
     map_custom_to_creditor,
     coerce_decimal,
 )
-from ledger.models import Customer
+from arledge.models import Customer
 
 
 def test_map_customer_missing_id_is_allowed():

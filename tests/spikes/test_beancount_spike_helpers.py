@@ -1,4 +1,4 @@
-from ledger.beancount_spike import (
+from arledge.beancount_spike import (
     extract_custom_entries_from_loader_entries,
     entry_meta_map,
     detect_entry_title,

@@ -1,7 +1,7 @@
 from decimal import Decimal
 from hypothesis import given, strategies as st
 
-from ledger.models import InvoiceLine, Invoice
+from arledge.models import InvoiceLine, Invoice
 
 
 @given(

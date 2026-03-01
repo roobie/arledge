@@ -1,4 +1,4 @@
-from ledger.cli import cli
+from arledge.cli import cli
 
 if __name__ == "__main__":
     cli()

@@ -25,7 +25,7 @@ Target audience: single entrepreneurs / freelancers — single-user, single-mach
 
 ## II. High-level strategy
 
-1. Replace `ledger/db.py` (SQLite) with a direct beancount store module (`ledger/beancount_store.py`). No generic storage abstraction — beancount is the only backend.
+1. Replace `ledger/db.py` (SQLite) with a direct beancount store module (`arledge/beancount_store.py`). No generic storage abstraction — beancount is the only backend.
 2. Implement append-only writes: write snippets to temp files, validate the snippet with the beancount parser, then append to target include files.
 3. Keep the CLI, models, schema output, and API unchanged; only the storage implementation changes.
 
@@ -63,7 +63,7 @@ Each task is small, testable, and intended for short iterations.
 
 ### 3) Read-only beancount store + mapping tests
 
-- Deliverable: `ledger/beancount_store.py` with read-only functions that parse beancount file(s) and map to Pydantic models for list/get operations (customers, creditors, payment accounts, invoices).
+- Deliverable: `arledge/beancount_store.py` with read-only functions that parse beancount file(s) and map to Pydantic models for list/get operations (customers, creditors, payment accounts, invoices).
 - Tests: mapping unit tests and parity tests against expected JSON fixtures.
 - Acceptance: read-only parity verified for a small dataset.
 

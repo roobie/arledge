@@ -1,8 +1,8 @@
 import textwrap
 from beancount.loader import load_string
 
-from ledger.beancount_spike import map_custom_to_customer
-from ledger.models import Customer
+from arledge.beancount_spike import map_custom_to_customer
+from arledge.models import Customer
 
 
 def test_map_custom_entry_to_customer():

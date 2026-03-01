@@ -1,7 +1,7 @@
 import json
 from click.testing import CliRunner
 
-from ledger import cli, models, config
+from arledge import cli, models, config
 
 
 def test_schema_flags_and_missing_model():

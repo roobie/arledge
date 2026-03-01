@@ -1,8 +1,8 @@
 from beancount.loader import load_file
 from pathlib import Path
 
-from ledger.beancount_spike import map_custom_to_customer
-from ledger.models import Customer
+from arledge.beancount_spike import map_custom_to_customer
+from arledge.models import Customer
 
 
 def test_loader_load_file_maps_customers(tmp_path):

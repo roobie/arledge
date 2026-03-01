@@ -2,7 +2,7 @@ import json
 from click.testing import CliRunner
 from pathlib import Path
 
-from ledger import cli
+from arledge import cli
 
 
 def test_invoice_allocate_and_seq():

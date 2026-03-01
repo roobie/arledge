@@ -1,4 +1,4 @@
-from ledger.models import PaymentAccount, Invoice, InvoiceLine
+from arledge.models import PaymentAccount, Invoice, InvoiceLine
 
 
 def test_paymentaccount_metadata_independent():

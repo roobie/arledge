@@ -1,7 +1,7 @@
 import json
 from click.testing import CliRunner
 
-from ledger import cli
+from arledge import cli
 
 
 def assert_valid_json(result):

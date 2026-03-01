@@ -14,11 +14,11 @@
 
 [8] **Coverage Learnings (.serena/memories/coverage-learnings.md)** - Coverage setup added pytest-cov/coverage, pyproject addopts, .coveragerc, CI workflow; final measured coverage 91.02% after tests and recommended next steps for reporting [1][12].
 
-[9] **Domain: Creditors & Payment Accounts (.serena/memories/domain-creditor-payment-accounts.md)** - Business rules and schemas for `creditors` and `creditor_payment_accounts`; metadata as free-form JSON, `is_default` semantics, monetary storage as integer cents, exporter preferences for `beancount_account`; see `ledger/beancount_store.py`, `ledger/models.py` [1][11].
+[9] **Domain: Creditors & Payment Accounts (.serena/memories/domain-creditor-payment-accounts.md)** - Business rules and schemas for `creditors` and `creditor_payment_accounts`; metadata as free-form JSON, `is_default` semantics, monetary storage as integer cents, exporter preferences for `beancount_account`; see `arledge/beancount_store.py`, `arledge/models.py` [1][11].
 
 [10] **Project General (.serena/memories/project-general.md)** - Onboarding and quickstart: use `uv` wrapper (e.g. `uv run pytest`), pytest configured in `pyproject.toml`, coverage/dev-deps noted; README and pyproject are entry points for run/test info [1].
 
-[11] **Pydantic Models & Serialization (.serena/memories/pydantic-models-and-serialization.md)** - Model conventions: models in `ledger/models.py` (Customer, Creditor, PaymentAccount, InvoiceLine, Invoice); prefer `model_validate_json()`, include `model_version`, use `ledger/config.dump_model()` for canonical serialization and JSON Schema for `--json-schema` [1][7].
+[11] **Pydantic Models & Serialization (.serena/memories/pydantic-models-and-serialization.md)** - Model conventions: models in `arledge/models.py` (Customer, Creditor, PaymentAccount, InvoiceLine, Invoice); prefer `model_validate_json()`, include `model_version`, use `ledger/config.dump_model()` for canonical serialization and JSON Schema for `--json-schema` [1][7].
 
 [12] **Test Coverage Setup (.serena/memories/test-coverage-setup.md)** - Coverage config: pytest addopts in pyproject, .coveragerc ignores, CI workflow; local commands `uv run pytest` and recommendation to raise coverage threshold once stable [8][11].
 
@@ -30,11 +30,11 @@
 
 [16] **CLI Commands & UX** - Top-level CLI groups: `database`, `customer`, `creditor` (and `creditor account`), `invoice`, `mcp`; `schema` and `instructions` serve agent-facing needs; machine outputs to stdout, human logs to stderr, non-zero exit codes on errors [7][11][14].
 
-[17] **Pydantic Models (ledger/models.py)** - Models include Customer, Creditor, PaymentAccount, InvoiceLine, Invoice; validators coerce datetimes/decimals; InvoiceLine computes net/vat/line_total with ROUND_HALF_UP quantize(0.01); Invoice computes subtotal/total and sets created_at default UTC now; `model_version` uses package __version__ [11].
+[17] **Pydantic Models (arledge/models.py)** - Models include Customer, Creditor, PaymentAccount, InvoiceLine, Invoice; validators coerce datetimes/decimals; InvoiceLine computes net/vat/line_total with ROUND_HALF_UP quantize(0.01); Invoice computes subtotal/total and sets created_at default UTC now; `model_version` uses package __version__ [11].
 
-[18] **Storage: Beancount files (ledger/beancount_store.py)** - Ledger is now file-first using Beancount include files and custom directives. `ledger/beancount_store.py` reads beancount loader entries and maps them to Pydantic models. Invoice lines are stored in JSON sidecar files referenced by transaction metadata. CLI create operations write beancount snippets via `ledger/beancount_write.py`. [9][17].
+[18] **Storage: Beancount files (arledge/beancount_store.py)** - Ledger is now file-first using Beancount include files and custom directives. `arledge/beancount_store.py` reads beancount loader entries and maps them to Pydantic models. Invoice lines are stored in JSON sidecar files referenced by transaction metadata. CLI create operations write beancount snippets via `ledger/beancount_write.py`. [9][17].
 
-[19] **Config Helpers & Serialization (ledger/config.py)** - Utilities: dt_to_iso_utc / iso_to_dt, decimal_to_str / decimal_to_str_currency, JSON_ENCODERS for Pydantic, and `dump_model()` converting datetimes and Decimals for CLI/MCP outputs [11][18].
+[19] **Config Helpers & Serialization (arledge/config.py)** - Utilities: dt_to_iso_utc / iso_to_dt, decimal_to_str / decimal_to_str_currency, JSON_ENCODERS for Pydantic, and `dump_model()` converting datetimes and Decimals for CLI/MCP outputs [11][18].
 
 [20] **MCP stdio Server (ledger/mcp_server.py)** - FastMCP launcher with lazy imports; `start_mcp_stdio_server` supports `dry_run` for tests, registers tools mirroring CLI ops (customer/creditor/account/invoice), and prints a `ping` tool; CLI `mcp start` lazily imports this launcher [16].
 

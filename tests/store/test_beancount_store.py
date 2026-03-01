@@ -1,8 +1,8 @@
 from pathlib import Path
 import json
 from click.testing import CliRunner
-from ledger import beancount_store
-from ledger import config
+from arledge import beancount_store
+from arledge import config
 
 
 def test_beancount_store_roundtrip(tmp_path, monkeypatch):

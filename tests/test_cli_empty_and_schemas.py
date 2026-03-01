@@ -1,5 +1,5 @@
 from click.testing import CliRunner
-from ledger import cli
+from arledge import cli
 import os
 
 

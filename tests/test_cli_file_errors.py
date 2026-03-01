@@ -1,7 +1,7 @@
 import os
 from click.testing import CliRunner
 
-from ledger import cli
+from arledge import cli
 
 
 def test_model_file_read_errors(tmp_path):

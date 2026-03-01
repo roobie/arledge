@@ -1,6 +1,6 @@
 from click.testing import CliRunner
 
-from ledger import cli
+from arledge import cli
 
 
 def test_mcp_help_shows_options():

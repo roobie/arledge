@@ -5,7 +5,7 @@ from decimal import Decimal
 from datetime import datetime, timezone
 from click.testing import CliRunner
 
-from ledger import cli, config, models
+from arledge import cli, config, models
 
 
 def test_instructions_and_schema_unknown():

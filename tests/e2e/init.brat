@@ -1,0 +1,61 @@
+#!/bin/sh
+# e2e tests for `ledger init` command
+
+. "$DIR/helpers.sh"
+
+setup() {
+  BASEDIR="$(mktemp -d)"
+  export ARLEDGE_BASEDIR="$BASEDIR"
+}
+
+teardown() {
+  rm -rf "$BASEDIR"
+}
+
+@test "ledger init exits 0" {
+  run ledger init
+  [ $status -eq 0 ]
+}
+
+@test "ledger init creates expected directory structure" {
+  run ledger init
+  [ $status -eq 0 ]
+  [ -f "$BASEDIR/ledger.beancount" ]
+  [ -d "$BASEDIR/includes" ]
+  [ -f "$BASEDIR/includes/customers.beancount" ]
+  [ -f "$BASEDIR/includes/creditors.beancount" ]
+  [ -f "$BASEDIR/includes/payment_accounts.beancount" ]
+  [ -d "$BASEDIR/includes/invoices" ]
+  [ -d "$BASEDIR/includes/invoices/data" ]
+  [ -d "$BASEDIR/.arledge" ]
+  [ -f "$BASEDIR/.arledge/invoice_seq" ]
+}
+
+@test "ledger init on existing layout without force exits with error" {
+  run ledger init
+  [ $status -eq 0 ]
+  # Verify files exist after first init
+  [ -f "$BASEDIR/ledger.beancount" ]
+  # Run init again without force (should fail)
+  run ledger init
+  [ $status -eq 2 ]
+  # But with force it should succeed
+  run ledger init --force
+  [ $status -eq 0 ]
+  # Verify files still exist
+  [ -f "$BASEDIR/ledger.beancount" ]
+}
+
+@test "ledger init --force overwrites existing layout" {
+  run ledger init
+  [ $status -eq 0 ]
+  # Add a marker file to the includes dir to verify it gets cleaned
+  touch "$BASEDIR/includes/marker.txt"
+  [ -f "$BASEDIR/includes/marker.txt" ]
+  # Force re-init
+  run ledger init --force
+  [ $status -eq 0 ]
+  # Structure still exists
+  [ -f "$BASEDIR/ledger.beancount" ]
+  [ -d "$BASEDIR/includes" ]
+}

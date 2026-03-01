@@ -1,0 +1,83 @@
+#!/bin/sh
+# e2e comprehensive workflow test
+
+. "$DIR/helpers.sh"
+
+setup() { setup_basedir; }
+teardown() { teardown_basedir; }
+
+@test "complete ledger workflow: init, create entities, invoice, export, validate" {
+  require_jq
+
+  # 1. Init (already done in setup, but verify it works explicitly)
+  run ledger init --force
+  [ $status -eq 0 ]
+
+  # 2. Create a customer
+  model=$(jq -nc '{name: "Workflow Customer", email: "workflow@customer.example", address: "123 Main St"}')
+  run ledger customer create --model "$model"
+  [ $status -eq 0 ]
+  customer_id=$(jq_field '.id' "$stdout")
+  [ -n "$customer_id" ]
+
+  # 3. Create a creditor
+  model=$(jq -nc '{name: "Workflow Creditor", email: "workflow@creditor.example", address: "456 Oak Ave"}')
+  run ledger creditor create --model "$model"
+  [ $status -eq 0 ]
+  creditor_id=$(jq_field '.id' "$stdout")
+  [ -n "$creditor_id" ]
+
+  # 4. Create a payment account for the creditor
+  model=$(jq -nc --arg cid "$creditor_id" '{creditor_id: ($cid | tonumber), type: "bank", label: "Main Account", identifier: "SE9500000000000000000001", bank: "Nordea", currency: "SEK", is_default: true}')
+  run ledger creditor account create --model "$model"
+  [ $status -eq 0 ]
+  account_id=$(jq_field '.id' "$stdout")
+  [ -n "$account_id" ]
+
+  # 5. Create an invoice with multiple line items
+  model=$(jq -nc --arg cid "$customer_id" --arg crid "$creditor_id" '{customer_id: ($cid | tonumber), creditor_id: ($crid | tonumber), currency: "SEK", lines: [{description: "Consulting Services", quantity: "10", unit_price: "500.00", vat_rate: "25"}, {description: "Travel Expenses", quantity: "1", unit_price: "250.00", vat_rate: "0"}]}')
+  run ledger invoice create --model "$model"
+  [ $status -eq 0 ]
+  invoice_id=$(jq_field '.id' "$stdout")
+  invoice_number=$(jq_field '.invoice_number' "$stdout")
+  total=$(jq_field '.total' "$stdout")
+  [ -n "$invoice_id" ]
+  [ -n "$invoice_number" ]
+  echo "$invoice_number" | grep -q 'INV-'
+
+  # 6. List and verify the invoice appears
+  run ledger invoice list
+  [ $status -eq 0 ]
+  match "$stdout" "$invoice_number"
+
+  # 7. View the invoice
+  run ledger invoice view "$invoice_id"
+  [ $status -eq 0 ]
+  match "$stdout" "\"id\": $invoice_id"
+  match "$stdout" "\"customer_id\": $customer_id"
+
+  # 8. Export the invoice to JSON
+  export_dir="$BASEDIR/exports"
+  mkdir -p "$export_dir"
+  export_file="$export_dir/workflow-invoice.json"
+  run ledger invoice export "$invoice_id" --format json --path "$export_file"
+  [ $status -eq 0 ]
+  [ -f "$export_file" ]
+  # Verify exported JSON is valid
+  run jq '.' "$export_file"
+  [ $status -eq 0 ]
+
+  # 9. Validate the ledger
+  run ledger validate
+  [ $status -eq 0 ]
+  match "$stderr" 'Ledger OK'
+
+  # 10. Create another invoice to test sequential numbering
+  model=$(jq -nc --arg cid "$customer_id" --arg crid "$creditor_id" '{customer_id: ($cid | tonumber), creditor_id: ($crid | tonumber), lines: [{description: "Follow-up", quantity: "1", unit_price: "1000.00", vat_rate: "25"}]}')
+  run ledger invoice create --model "$model"
+  [ $status -eq 0 ]
+  second_number=$(jq_field '.invoice_number' "$stdout")
+  echo "$second_number" | grep -q 'INV-'
+  # Should be different from the first
+  [ "$second_number" != "$invoice_number" ]
+}

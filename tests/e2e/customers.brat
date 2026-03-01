@@ -1,0 +1,48 @@
+#!/bin/sh
+# e2e tests for customer workflow
+
+. "$DIR/helpers.sh"
+
+setup() { setup_basedir; }
+teardown() { teardown_basedir; }
+
+@test "customer create with valid JSON exits 0" {
+  model=$(jq -nc '{name: "ACME Corp", email: "sales@acme.example"}')
+  run ledger customer create --model "$model"
+  [ $status -eq 0 ]
+}
+
+@test "customer create stdout contains name" {
+  model=$(jq -nc '{name: "ACME Corp", email: "sales@acme.example"}')
+  run ledger customer create --model "$model"
+  [ $status -eq 0 ]
+  match "$stdout" '/"name":\s*"ACME Corp"/'
+}
+
+@test "customer create returns an id" {
+  require_jq
+  model=$(jq -nc '{name: "ACME Corp", email: "sales@acme.example"}')
+  run ledger customer create --model "$model"
+  [ $status -eq 0 ]
+  id=$(jq_field '.id' "$stdout")
+  [ -n "$id" ]
+  [ "$id" -ge 1 ]
+}
+
+@test "customer list after create contains the customer" {
+  run ledger customer create --model '{"name":"TestCorp","email":"test@corp.example"}'
+  [ $status -eq 0 ]
+  run ledger customer list
+  [ $status -eq 0 ]
+  match "$stdout" '/"name":\s*"TestCorp"/'
+}
+
+@test "customer list on empty ledger exits 0" {
+  run ledger customer list
+  [ $status -eq 0 ]
+}
+
+@test "customer create without name exits with error" {
+  run ledger customer create --model '{"email":"nope@example.com"}'
+  [ $status -eq 2 ]
+}

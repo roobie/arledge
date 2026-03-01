@@ -98,3 +98,18 @@ if __name__ == "__main__":
 
 Note: this CLI command lazily imports the `mcp` runtime so other CLI commands and tests are not affected when `mcp` is not used. Use `--dry-run` in unit tests to avoid blocking the test process.
 
+Configurable DB path
+
+By default the ledger uses a SQLite file named `ledger.db` located in the current working directory. You can override the DB location in two ways:
+
+- Set the environment variable `LEDGER_DB_PATH` to a full path to the DB file.
+- Or set `ledger.config.ledger_db_path` in code (advanced usage).
+
+Example using environment variable:
+
+```bash
+LEDGER_DB_PATH=/tmp/my-ledger.db uv run python -m ledger database initialize
+```
+
+The `database initialize` command prints the path where the DB was initialized.
+

@@ -6,6 +6,11 @@ from typing import Any
 # Global DB table prefix (use alphanumeric and underscore only)
 arledge_db_prefix = "arledge"
 
+# Optional override for the ledger DB path. If set to a string path, ledger
+# modules will prefer this path. The environment variable LEDGER_DB_PATH also
+# overrides the default and takes precedence.
+ledger_db_path: str | None = None
+
 IS_DEVELOPMENT = True
 
 # MCP stdio server defaults

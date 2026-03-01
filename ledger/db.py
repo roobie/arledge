@@ -8,11 +8,41 @@ from datetime import datetime, timezone
 from . import config
 from . import models
 
-DB_PATH: str = os.path.join(os.getcwd(), "ledger.db")
+# Backwards-compatible module-level DB_PATH variable. Tests and some callers set
+# db.DB_PATH directly; if set, it takes precedence when resolving the path.
+DB_PATH: str | None = None
+
+
+def get_db_path() -> str:
+    """Return the ledger DB path.
+
+    Preference order:
+    - Environment variable LEDGER_DB_PATH
+    - Config attribute `ledger_db_path` on ledger.config if present
+    - Default: <cwd>/ledger.db
+    """
+    # Module-level override (backwards compatibility with tests/legacy callers)
+    if DB_PATH:
+        return DB_PATH
+    # Environment variable override
+    db_path = os.environ.get("LEDGER_DB_PATH")
+    if db_path:
+        return db_path
+    # Config-based override (optional)
+    try:
+        from . import config as _config
+
+        db_path = getattr(_config, "ledger_db_path", None)
+        if db_path:
+            return db_path
+    except Exception:
+        # ignore if config import fails
+        pass
+    return os.path.join(os.getcwd(), "ledger.db")
 
 
 def get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -33,9 +63,10 @@ def init_db() -> None:
     try:
         from . import config
 
-        if os.path.exists(DB_PATH):
+        db_path = get_db_path()
+        if os.path.exists(db_path):
             if config.IS_DEVELOPMENT:
-                os.remove(DB_PATH)
+                os.remove(db_path)
     except Exception:
         # If remove fails, continue and let SQLite handle existing file
         pass
@@ -124,7 +155,7 @@ def init_db() -> None:
     conn.commit()
     conn.close()
 
-    return DB_PATH
+    return get_db_path()
 
 
 def create_customer(customer: models.Customer) -> models.Customer:

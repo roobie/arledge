@@ -1,7 +1,3 @@
-[build-system]
-requires = ["setuptools>=61.0", "wheel", "build"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "arledge"
 version = "0.1.0"
@@ -23,6 +19,12 @@ dependencies = [
 
 [project.scripts]
 ledger = "ledger.cli:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[tool.hatch.build.targets.wheel]
+packages = ["src/ledger"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
